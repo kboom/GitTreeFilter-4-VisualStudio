@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+	<!--  This is the file that defines the actual layout and type of the commands.
+        It is divided in different sections (e.g. command definition, command
+        placement, ...), with each defining a specific set of properties.
+        See the comment before each section for more details about how to
+        use it. -->
+
+	<!--  The VSCT compiler (the tool that translates this file into the binary
+        format that VisualStudio will consume) has the ability to run a preprocessor
+        on the vsct file; this preprocessor is (usually) the C++ preprocessor, so
+        it is possible to define includes and macros with the same syntax used
+        in C++ files. Using this ability of the compiler here, we include some files
+        defining some of the constants that we will use inside the file. -->
+
+	<!--This is the file that defines the IDs for all the commands exposed by VisualStudio. -->
+	<Extern href="stdidcmd.h"/>
+
+	<!--This header contains the command ids for the menus provided by the shell. -->
+	<Extern href="vsshlids.h"/>
+
+	<!--The Commands section is where commands, menus, and menu groups are defined.
+      This section uses a Guid to identify the package that provides the command defined inside it. -->
+	<Commands package="packageGuidString">
+		<!-- Inside this section we have different sub-sections: one for the menus, another
+    for the menu groups, one for the buttons (the actual commands), one for the combos
+    and the last one for the bitmaps used. Each element is identified by a command id that
+    is a unique pair of guid and numeric identifier; the guid part of the identifier is usually
+    called "command set" and is used to group different command inside a logically related
+    group; your package should define its own command set in order to avoid collisions
+    with command ids defined by other packages. -->
+
+		<Groups>
+			<Group guid="guidGitFiltersControlsCmdSet" id="GitFiltersToolbarGroupId" priority="0x0025">
+				<Parent guid="guidSHLMainMenu" id="IDM_VS_TOOL_PROJWIN"/>
+			</Group>
+		</Groups>
+
+		<!--Buttons section. -->
+		<Buttons>
+			<!-- Diff and filter solution button in Solution Explorer -->
+			<Button guid="guidGitTreeFiltersCmdSet" id="gitTreeFilterCommand" priority="0x0400" type="Button">
+				<Parent guid="guidSHLMainMenu" id="IDG_VS_TOOLBAR_PROJWIN_FILTERS" />
+				<Icon guid="ImagesGuid" id="Pin" />
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<Strings>
+					<ButtonText>Git Tree Filter</ButtonText>
+					<CommandName>gitTreeFilterCommand</CommandName>
+				</Strings>
+			</Button>
+
+			<!-- Button to open diff window for physical file node in Solution Explorer tree-->
+			<Button guid="guidGitFiltersControlsCmdSet" id="cmdidPhysicalFileDiffMenuCommand" type="Button" priority="0x0000">
+				<Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_ITEM_OPEN" />
+				<Icon guid="ImagesGuid" id="Changes" />
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<Strings>
+					<ButtonText>Show changes</ButtonText>
+				</Strings>
+			</Button>
+
+			<!-- Button to open diff window for a project node in Solution Explorer tree -->
+			<Button guid="guidGitFiltersControlsCmdSet" id="cmdidProjectFileDiffMenuCommand" type="Button" priority="0x0000">
+				<Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJECT_BUILD"/>
+				<Icon guid="ImagesGuid" id="Changes" />
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<Strings>
+					<ButtonText>Show changes</ButtonText>
+				</Strings>
+			</Button>
+
+			<!-- Solution explorer button which brings up comparision settings of git filters --> 
+			<Button guid="guidGitFiltersControlsCmdSet" id="SelectReferenceObjectButtonId" priority="0x0050" type="Button">
+				<Parent guid="guidGitFiltersControlsCmdSet" id="GitFiltersToolbarGroupId"/>
+				<Icon guid="ImagesGuid" id="Settings"/>
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<Strings>
+					<ButtonText>Git Tree Filter settings</ButtonText>
+				</Strings>
+			</Button>
+
+		</Buttons>
+
+		<!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
+		<Bitmaps>
+			<Bitmap guid="ImagesGuid" href="Resources\GitTreeFilte.iconlist.bmp" usedList="Pin,Settings,Changes" />
+		</Bitmaps>
+	</Commands>
+
+	<VisibilityConstraints>
+		<VisibilityItem guid="guidGitTreeFiltersCmdSet" id="gitTreeFilterCommand" context="UICONTEXT_SolutionExists"/>
+	</VisibilityConstraints>
+
+	<Symbols>
+		<GuidSymbol name="packageGuidString" value="{d53fb140-57e0-4ba0-b975-544042e06cb7}" />
+
+		<GuidSymbol name="guidGitFiltersControlsCmdSet" value="{04ed3748-c3e2-4f02-8aaf-552c892418b8}">
+			<IDSymbol name="GitFiltersToolbarGroupId" value="0x0190" />
+			<IDSymbol name="SelectReferenceObjectButtonId" value="0x1022" />
+			<IDSymbol name="cmdidPhysicalFileDiffMenuCommand" value="0x0100" />
+			<IDSymbol name="cmdidProjectFileDiffMenuCommand" value="0x0200"/>
+		</GuidSymbol>
+
+		<GuidSymbol name="guidGitTreeFiltersCmdSet" value="{88ef3d8f-db07-43e2-a78a-b3be85ddbce4}">
+			<IDSymbol name="gitTreeFilterCommand" value="0x100"/>
+		</GuidSymbol>
+
+		<GuidSymbol name="ImagesGuid" value="{C4223526-2F74-4AEA-9218-6C29A9793BE8}">
+			<IDSymbol name="Pin" value="1"/>
+			<IDSymbol name="Settings" value="2"/>
+			<IDSymbol name="Changes" value="3"/>
+		</GuidSymbol>
+	</Symbols>
+</CommandTable>

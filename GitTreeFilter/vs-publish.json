@@ -1,0 +1,14 @@
+{
+    "$schema": "http://json.schemastore.org/vsix-publish",
+    "categories": [
+        "productivity",
+        "coding"
+    ],
+    "identity": {
+        "internalName": "kboom.gittreefilter"
+    },
+    "assetFiles": [],
+    "overview": "../README.md",
+    "publisher": "kboom",
+    "repo": "http://github.com/kboom/git-tree-filter-4vs"
+}

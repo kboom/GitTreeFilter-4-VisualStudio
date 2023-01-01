@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	 <TargetFrameworks>net472</TargetFrameworks>
+	  <EnableNETAnalyzers>true</EnableNETAnalyzers>
+	  <AnalysisLevel>5.0</AnalysisLevel>
+	  <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+	  <OutputType>Library</OutputType>
+	  <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+	  <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+  </PropertyGroup>
+
+
+	<ItemGroup>
+		<PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0182" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+		<PackageReference Include="System.ObjectModel" Version="4.3.0" />
+	</ItemGroup>
+</Project>

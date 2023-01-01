@@ -1,0 +1,98 @@
+name: release
+
+on:
+  push:
+    tags:
+    - 'v*'
+  workflow_dispatch:
+
+env:
+  SOLUTION_FILE_PATH: .
+  DEFAULT_BRANCH: main
+
+jobs:
+  build-test-and-release-vs22:
+    runs-on: windows-2022
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    env:
+      VsixManifestPath: .\GitTreeFilter\source.extension.vsixmanifest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - uses: actions/cache@v2
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.config') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1
+      with:
+        vs-version: '[17.0, )'
+
+    - name: Setup VSTest
+      uses: darenm/Setup-VSTest@v1
+
+    - name: Restore NuGet packages
+      run: nuget restore ${{env.SOLUTION_FILE_PATH}}
+
+    - name: Calculate next semantic version Git tag (vsix version)
+      id: vsix_version
+      uses: ./.github/actions/next-git-tag
+
+    - name: Set VSIX version for 2022
+      uses: cezarypiatek/VsixVersionAction@1.0
+      with:
+        version: ${{ steps.vsix_version.outputs.next-tag }}
+        vsix-manifest-file: .\GitTreeFilter\source.extension.vsixmanifest
+
+    - name: Build
+      run: |
+        msbuild ${{env.SOLUTION_FILE_PATH}} /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m
+      shell: powershell
+
+    - name: Tests
+      run: vstest.console.exe **\*.Tests.dll
+
+    - name: Set up Git actions user
+      uses: fregante/setup-git-user@v1
+
+    - name: Create and push Git tag release
+      run: |
+        git tag ${{ steps.vsix_version.outputs.next-tag }}
+        git push origin main
+        git push origin main --tags
+
+    - name: Create GitHub Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.vsix_version.outputs.next-tag }}
+        release_name: Release ${{ steps.vsix_version.outputs.next-tag }}
+        draft: false
+        prerelease: false
+
+    - name: Upload GitHub Release 2022 Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: .\GitTreeFilter\bin\Release\GitTreeFilter.vsix
+        asset_name: GitTreeFilter-${{ steps.vsix_version.outputs.next-tag }}-2022.vsix
+        asset_content_type: application/zip
+
+    - name: Publish 2022 extension to Marketplace
+      uses: cezarypiatek/VsixPublisherAction@0.2
+      with:
+        extension-file: '.\GitTreeFilter\bin\Release\GitTreeFilter.vsix'
+        publish-manifest-file: '.\GitTreeFilter\vs-publish.json'
+        personal-access-code: ${{ secrets.VS_PUBLISHER_ACCESS_TOKEN }}
