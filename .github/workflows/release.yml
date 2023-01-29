@@ -5,10 +5,16 @@ on:
     tags:
     - 'v*'
   workflow_dispatch:
+    inputs:
+      level:
+        description: 'Semver level to upgrade'
+        required: true
+
 
 env:
   SOLUTION_FILE_PATH: .
   DEFAULT_BRANCH: main
+  VSIX_PATH: .\GitTreeFilter\bin\Release\GitTreeFilter.vsix
 
 jobs:
   build-test-and-release-vs22:
@@ -43,13 +49,19 @@ jobs:
       run: nuget restore ${{env.SOLUTION_FILE_PATH}}
 
     - name: Calculate next semantic version Git tag (vsix version)
-      id: vsix_version
-      uses: ./.github/actions/next-git-tag
+      uses: actions-ecosystem/action-get-latest-tag@v1
+      id: get-latest-tag
+
+    - uses: actions-ecosystem/action-bump-semver@v1
+      id: bump-semver
+      with:
+        current_version: ${{ steps.get-latest-tag.outputs.tag }}
+        level: ${{ github.event.inputs.tag }}
 
     - name: Set VSIX version for 2022
       uses: cezarypiatek/VsixVersionAction@1.0
       with:
-        version: ${{ steps.vsix_version.outputs.next-tag }}
+        version: ${{ steps.bump-semver.outputs.new_version }}
         vsix-manifest-file: .\GitTreeFilter\source.extension.vsixmanifest
 
     - name: Build
@@ -64,10 +76,10 @@ jobs:
       uses: fregante/setup-git-user@v1
 
     - name: Create and push Git tag release
-      run: |
-        git tag ${{ steps.vsix_version.outputs.next-tag }}
-        git push origin main
-        git push origin main --tags
+      uses: actions-ecosystem/action-push-tag@v1
+      with:
+        tag: ${{ steps.bump-semver.outputs.new_version }}
+        message: '${{ steps.bump-semver.outputs.new_version }}'
 
     - name: Create GitHub Release
       id: create_release
@@ -75,8 +87,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ steps.vsix_version.outputs.next-tag }}
-        release_name: Release ${{ steps.vsix_version.outputs.next-tag }}
+        tag_name: ${{ steps.bump-semver.outputs.new_version }}
+        release_name: Release ${{ steps.bump-semver.outputs.new_version }}
         draft: false
         prerelease: false
 
@@ -86,13 +98,13 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: .\GitTreeFilter\bin\Release\GitTreeFilter.vsix
-        asset_name: GitTreeFilter-${{ steps.vsix_version.outputs.next-tag }}-2022.vsix
+        asset_path:  ${{env.VSIX_PATH}}
+        asset_name: GitTreeFilter-${{ steps.bump-semver.outputs.new_version }}-2022.vsix
         asset_content_type: application/zip
 
     - name: Publish 2022 extension to Marketplace
       uses: cezarypiatek/VsixPublisherAction@0.2
       with:
-        extension-file: '.\GitTreeFilter\bin\Release\GitTreeFilter.vsix'
+        extension-file: ${{env.VSIX_PATH}}
         publish-manifest-file: '.\GitTreeFilter\vs-publish.json'
         personal-access-code: ${{ secrets.VS_PUBLISHER_ACCESS_TOKEN }}
