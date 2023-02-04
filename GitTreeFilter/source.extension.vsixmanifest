@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="GitTreeFilter.eae60f56-2c84-4ba9-9cbc-d021d9c67958" Version="1.0" Language="en-US" Publisher="Grzegorz Gurgul" />
+        <Identity Id="GitTreeFilter.eae60f56-2c84-4ba9-9cbc-d021d9c67958" Version="1.1" Language="en-US" Publisher="Grzegorz Gurgul" />
         <DisplayName>GitTreeFilter</DisplayName>
-        <Description xml:space="preserve">Filter solution explorer by showing only the files of the working tree that were changed in comparison to a working tree from specific branch, commit or tag. This does not show you the commits but the aggregated changes, which is great for working on a feature. You can also compare changes for individual files by right-clicking on any solution item when the filter is active.</Description>
+        <Description xml:space="preserve">Filter solution explorer by showing only the files that were changed in comparison to a working tree from specific branch, commit or tag.</Description>
         <MoreInfo>https://github.com/kboom/git-tree-filter-4vs/</MoreInfo>
         <License>LICENSE.txt</License>
         <ReleaseNotes>https://github.com/kboom/git-tree-filter-4vs/blob/main/CHANGELOG.md</ReleaseNotes>

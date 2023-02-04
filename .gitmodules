@@ -1,0 +1,3 @@
+[submodule "TestRepository"]
+	path = TestResources/TestRepository
+	url = https://github.com/kboom/GitTreeFilter-4-VisualStudio-Test-Repository
