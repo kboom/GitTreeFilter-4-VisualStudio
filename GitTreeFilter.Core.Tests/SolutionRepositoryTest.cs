@@ -1,13 +1,21 @@
+using GitTreeFilter.Core.Tests.Repositories;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace GitTreeFilter.Core.Tests
 {
     [TestClass]
-    public class SolutionRepositoryTest
+    public abstract class SolutionRepositoryTest
     {
-        [TestMethod]
-        public void TestMethod1()
+        public TestComparisonConfig ComparisonConfig = new();
+
+        protected ISolutionRepository CreateSolutionRepository(ITestRepository testRepository)
         {
+            return SolutionRepositoryFactory.CreateSolutionRepository(testRepository.Solution, ComparisonConfig);
         }
+    }
+
+    public class TestComparisonConfig : IComparisonConfig
+    {
+        public bool OriginRefsOnly => false;
     }
 }

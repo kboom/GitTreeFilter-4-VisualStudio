@@ -17,7 +17,15 @@ namespace GitTreeFilter.Core
         GitReference<GitCommitObject> GitReference { get; set; }
         IEnumerable<GitCommit> GetRecentCommits(int number = 50);
         IEnumerable<GitTag> GetRecentTags(int number = 50);
-        GitReference<GitCommitObject> LoadFromRepository(GitReference<GitCommitObject> storedGitReference);
+
+        /// <summary>
+        /// Attempts to load a reference from the repository, restoring its full details.
+        /// If it is not possible to load the original refrence, a git commit will be returned.
+        /// Returns false only in the case the commit no longer exists in the repository.
+        /// </summary>
+        /// <param name="gitReference">Dehydrated reference to be hydrated</param>
+        /// <returns>Hydrated reference of original type or a hydrated commit, if original object no longer resolvable</returns>
+        bool TryHydrate(GitReference<GitCommitObject> gitReference, out GitReference<GitCommitObject> hydratedReference);
         bool TryGetGitBranchByName(string branchName, out GitBranch branch);
     }
 
@@ -210,11 +218,11 @@ namespace GitTreeFilter.Core
             return true;
         }
 
-        public GitReference<GitCommitObject> LoadFromRepository(GitReference<GitCommitObject> storedGitReference)
+        public bool TryHydrate(GitReference<GitCommitObject> gitReference, out GitReference<GitCommitObject> hydratedReference)
         {
             using (var repository = _repositoryFactory.Create(GitSolution))
             {
-                return RepositoryExtensions.LoadFromRepository(repository, storedGitReference, ComparisonConfig);
+                return RepositoryExtensions.TryHydrate(repository, gitReference, out hydratedReference, ComparisonConfig);
             }
         }
 
