@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	 <TargetFrameworks>net472</TargetFrameworks>
+	 	<TargetFrameworks>net472</TargetFrameworks>
 	  <EnableNETAnalyzers>true</EnableNETAnalyzers>
 	  <AnalysisLevel>5.0</AnalysisLevel>
 	  <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
