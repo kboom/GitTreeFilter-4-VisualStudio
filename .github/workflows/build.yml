@@ -23,7 +23,8 @@ jobs:
         fetch-depth: 0
 
     - run: |
-        git submodule update --init --remote --rebase
+        git submodule update --remote --rebase
+        git submodule foreach git checkout main
         cd TestResources\TestRepository && git status
 
     - name: Add MSBuild to PATH
