@@ -47,8 +47,8 @@ jobs:
     - name: Run vstests
       uses: microsoft/vstest-action@v1.0.0
       with:
-        testAssembly: GitTreeFilter.Core.Tests
-        searchFolder: GitTreeFilter.Core.Tests
+        testAssembly: GitTreeFilter.Core.Tests.dll
+        searchFolder: .\GitTreeFilter.Core.Tests\bin\Debug\
         runInParallel: true
 
     - name: Publish unit test results
