@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace GitTreeFilter.Core.Tests
 {
     [TestClass]
-    public class BranchesTests : SolutionRepositoryTest
+    public class BranchesTest : SolutionRepositoryTest
     {
         [DataTestMethod]
         [AllRepositoriesData]

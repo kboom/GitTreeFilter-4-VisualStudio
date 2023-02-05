@@ -8,5 +8,6 @@ namespace GitTreeFilter.Core.Exceptions
 {
     public sealed class NothingToCompareException : GitOperationException
     {
+        public NothingToCompareException() : base("Git reference was null") { }
     }
 }

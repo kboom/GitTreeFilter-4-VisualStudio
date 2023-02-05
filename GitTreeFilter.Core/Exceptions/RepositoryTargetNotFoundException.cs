@@ -8,5 +8,6 @@ namespace GitTreeFilter.Core.Exceptions
 {
     public sealed class RepositoryTargetNotFoundException : GitOperationException
     {
+        public RepositoryTargetNotFoundException() : base("Selected reference does not exist in repository") { }
     }
 }

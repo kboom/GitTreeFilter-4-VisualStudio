@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace GitTreeFilter.Core.Tests
 {
     [TestClass]
-    public class GetRecentCommitsTests : SolutionRepositoryTest
+    public class GetRecentCommitsTest : SolutionRepositoryTest
     {
         [DataTestMethod]
         [AllRepositoriesData]

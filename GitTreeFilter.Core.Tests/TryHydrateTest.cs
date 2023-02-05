@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Linq;
+using FluentAssertions;
 using FluentAssertions.Execution;
 using GitTreeFilter.Core.Models;
 using GitTreeFilter.Core.Tests.DataSource;
@@ -9,7 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace GitTreeFilter.Core.Tests
 {
     [TestClass]
-    public class TryHydrateTests : SolutionRepositoryTest
+    public class TryHydrateTest : SolutionRepositoryTest
     {
         [DataTestMethod]
         [AllRepositoriesData]
@@ -46,6 +47,33 @@ namespace GitTreeFilter.Core.Tests
             var solutionRepository = CreateSolutionRepository(testRepository);
             var expectedBranch = testRepository.Branches.RandomElement();
             var rawCommit = new GitCommitObject(expectedBranch.Reference.Sha);
+            var rawGitBranch = new GitBranch(rawCommit, expectedBranch.FriendlyName);
+
+            // when
+            var hydrated = solutionRepository.TryHydrate(rawGitBranch, out var rehydratedReference);
+
+            // then
+            using (new AssertionScope())
+            {
+                hydrated.Should().BeTrue();
+
+                rehydratedReference.Should()
+                    .NotBeNull()
+                    .And
+                    .BeAssignableTo<GitBranch>()
+                    .And
+                    .Be(expectedBranch);
+            }
+        }
+
+        [DataTestMethod]
+        [AllRepositoriesData]
+        public void FastForwardsCommitsForResolvableBranches(ITestRepository testRepository)
+        {
+            // given
+            var solutionRepository = CreateSolutionRepository(testRepository);
+            var expectedBranch = testRepository.Branches[0];
+            var rawCommit = new GitCommitObject(testRepository.CommitObjects.LastOrDefault().Sha);
             var rawGitBranch = new GitBranch(rawCommit, expectedBranch.FriendlyName);
 
             // when
