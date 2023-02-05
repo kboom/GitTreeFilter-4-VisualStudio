@@ -26,10 +26,13 @@ jobs:
         git submodule foreach git checkout main
         cd TestResources\TestRepository && git status
 
-    - name: Add MSBuild to PATH
+    - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1
       with:
         vs-version: '[17.0, ]'
+
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v1.0.5
 
     - name: Setup VSTest
       uses: darenm/Setup-VSTest@v1
@@ -38,9 +41,19 @@ jobs:
       run: nuget restore ${{env.SOLUTION_FILE_PATH}}
 
     - name: Build
-      run: |
-        msbuild ${{env.SOLUTION_FILE_PATH}} /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m
+      run: msbuild ${{env.SOLUTION_FILE_PATH}} /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m
       shell: powershell
 
     - name: Tests
       run:  vstest.console.exe **\*.Tests.dll
+
+    - name: unit tests for Contoso Business Layer
+      uses: zyborg/dotnet-tests-report@v1
+      with:
+        project_path: GitTreeFilter.Core.Tests
+        report_name: unit-tests
+        report_title: Unit Test Results
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        gist_name: unit-tests.md
+        gist_badge_label: 'Unit tests: %Counters_passed%/%Counters_total%'
+        gist_token: ${{ secrets.GIST_TOKEN }}
