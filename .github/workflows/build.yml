@@ -50,7 +50,6 @@ jobs:
         testAssembly: GitTreeFilter.Core.Tests.dll
         searchFolder: ${{ github.workspace }}\GitTreeFilter.Core.Tests\bin\Release\net472\
         runInParallel: true
-        # codeCoverageEnabled: true
         otherConsoleOptions: /Logger:trx
 
     - name: Show files
@@ -61,5 +60,5 @@ jobs:
       if: success() || failure()
       with:
         name: Unit test results
-        path: TestResults/*.xml
+        path: TestResults/*.trx
         reporter: dotnet-trx
