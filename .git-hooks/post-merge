@@ -1,6 +1,4 @@
 #!/bin/sh
 
 echo "Updating submodules"
-# git submodule update --init
-# git submodule foreach git pull origin main
-# git submodule foreach git checkout main
+git submodule update --init --remote
