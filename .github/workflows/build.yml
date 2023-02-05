@@ -22,9 +22,9 @@ jobs:
         submodules: 'true'
         fetch-depth: 0
 
-    - run: |
+    - name: Track main branches in submodules
+      run: |
         git submodule foreach git checkout main
-        cd TestResources\TestRepository && git status
 
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1
