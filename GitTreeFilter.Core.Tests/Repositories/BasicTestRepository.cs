@@ -11,6 +11,7 @@ namespace GitTreeFilter.Core.Tests.Repositories
         public GitSolution Solution => new(Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../../../../TestResources/TestRepository")));
 
         public IReadOnlyList<GitCommitObject> CommitObjects => Array.AsReadOnly(new GitCommitObject[] {
+            new ("c51eb9ff538a4af7b653d3fa35ccb9d6fc9321b4", "Added Class2"),
             new ("38bd60abc0546bf92c54802dfa810480c9f4a96f", "Initialized dotnet"),
             new ("bd6eb8b7f0879bfbf6f33863a655b2d0f8084ef5", "Initial commit.")
         });
