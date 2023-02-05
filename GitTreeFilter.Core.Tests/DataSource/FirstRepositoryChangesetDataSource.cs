@@ -15,8 +15,26 @@ namespace GitTreeFilter.Core.Tests.DataSource
                 FilesInChangeset = new string[]
                 {
                     "Class1.cs",
-                    "Class2.cs",
+                    "Class3.cs",
                     "GitTreeFilter-testrepo.csproj"
+                }
+            },
+            new()
+            {
+                Repository = TestRepositories.First,
+                Reference = TestRepositories.First.Commits[TestRepositories.First.Commits.Count - 2],
+                FilesInChangeset = new string[]
+                {
+                    "Class3.cs"
+                }
+            },
+            new()
+            {
+                Repository = TestRepositories.First,
+                Reference = TestRepositories.First.Commits[TestRepositories.First.Commits.Count - 3],
+                FilesInChangeset = new string[]
+                {
+                    "Class3.cs"
                 }
             }
         };
