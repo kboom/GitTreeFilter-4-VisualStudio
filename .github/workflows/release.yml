@@ -1,4 +1,4 @@
-name: release
+name: Release
 
 on:
   push:
@@ -13,6 +13,8 @@ env:
 jobs:
   build-test-and-release-vs22:
     runs-on: windows-2022
+    permissions:
+      checks: write
     defaults:
       run:
         working-directory: ${{ github.workspace }}
@@ -20,9 +22,14 @@ jobs:
       VsixManifestPath: .\GitTreeFilter\source.extension.vsixmanifest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
+        submodules: 'true'
         fetch-depth: 0
+
+    - name: Track main branches in submodules
+      run: |
+        git submodule foreach git checkout main
 
     - uses: actions/cache@v2
       with:
@@ -38,6 +45,9 @@ jobs:
 
     - name: Setup VSTest
       uses: darenm/Setup-VSTest@v1
+
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v1.0.5
 
     - name: Restore NuGet packages
       run: nuget restore ${{env.SOLUTION_FILE_PATH}}
@@ -57,8 +67,25 @@ jobs:
         msbuild ${{env.SOLUTION_FILE_PATH}} /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m
       shell: powershell
 
-    - name: Tests
-      run: vstest.console.exe **\*.Tests.dll
+    - name: Run vstests
+      uses: microsoft/vstest-action@v1.0.0
+      with:
+        testAssembly: GitTreeFilter.Core.Tests.dll
+        searchFolder: ${{ github.workspace }}\GitTreeFilter.Core.Tests\bin\Release\net472\
+        runInParallel: true
+        otherConsoleOptions: /Logger:trx
+
+    - name: Show files
+      run: Get-ChildItem -Path ${{ github.workspace }} -Recurse
+
+    - name: Test Report
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: Test results
+        path: "TestResults/*.trx"                            
+        reporter: dotnet-trx
+        fail-on-error: true
 
     - name: Set up Git actions user
       uses: fregante/setup-git-user@v1
