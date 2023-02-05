@@ -1,5 +1,5 @@
 #!/bin/sh
 
-echo "Updating submodules"
+echo "Updating submodules 2"
 git submodule update --init
 git submodule foreach git checkout main
