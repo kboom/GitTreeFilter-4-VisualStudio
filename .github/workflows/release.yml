@@ -75,9 +75,6 @@ jobs:
         runInParallel: true
         otherConsoleOptions: /Logger:trx
 
-    - name: Show files
-      run: Get-ChildItem -Path ${{ github.workspace }} -Recurse
-
     - name: Test Report
       uses: dorny/test-reporter@v1
       if: always()
