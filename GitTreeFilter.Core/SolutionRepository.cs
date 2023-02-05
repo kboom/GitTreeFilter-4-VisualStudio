@@ -9,15 +9,70 @@ namespace GitTreeFilter.Core
 {
     public interface ISolutionRepository
     {
+        /// <summary>
+        /// The solution this repository is configured for.
+        /// </summary>
         GitSolution GitSolution { get; }
+
         IComparisonConfig ComparisonConfig { get; }
+
+        /// <summary>
+        /// All branches that are defined for the repository <see cref="GitSolution"/>.
+        /// </summary>
         IEnumerable<GitBranch> Branches { get; }
+
+        /// <summary>
+        /// Generates the <see cref="GitChangeset"/> between the current working directory <see cref="GitSolution"/>
+        /// and a Git Worktree <see cref="GitReference"/>.
+        /// </summary>
         GitChangeset Changeset { get; }
+
+        /// <summary>
+        /// Attempts to read an element in the repository at <paramref name="path"/> in the current repository working directory.
+        /// Returns <see langword="true"/> and sets an element <paramref name="item"/> if available,
+        /// or <see langword="false"/> with element <paramref name="item"/> set to <see langword="null"/> otherwise.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="item"></param>
+        /// <returns></returns>
         bool TryReadItem(string path, out GitItem item);
+
+        /// <summary>
+        /// The reference that this repository will use for comparison functions like <see cref="Changeset"/>.
+        /// </summary>
         GitReference<GitCommitObject> GitReference { get; set; }
+
+        /// <summary>
+        /// Gets the <paramref name="number"/> of commits which are reachable from current repository HEAD,
+        /// sorted by topology and time.
+        /// </summary>
+        /// <param name="number">The maximum number of commits to return, or 50 by default</param>
+        /// <returns></returns>
         IEnumerable<GitCommit> GetRecentCommits(int number = 50);
+
+        /// <summary>
+        /// Get the <paramref name="number"/> of tags by the order of creation date.
+        /// </summary>
+        /// <param name="number">The maximum number of tags to return, or 50 by default</param>
+        /// <returns>Tags</returns>
         IEnumerable<GitTag> GetRecentTags(int number = 50);
-        GitReference<GitCommitObject> LoadFromRepository(GitReference<GitCommitObject> storedGitReference);
+
+        /// <summary>
+        /// Attempts to load a reference from the repository, restoring its full details.
+        /// If it is not possible to load the original refrence, a git commit will be returned.
+        /// Returns false only in the case the commit no longer exists in the repository.
+        /// </summary>
+        /// <param name="gitReference">Dehydrated reference to be hydrated</param>
+        /// <returns>Hydrated reference of original type or a hydrated commit, if original object no longer resolvable</returns>
+        bool TryHydrate(GitReference<GitCommitObject> gitReference, out GitReference<GitCommitObject> hydratedReference);
+
+        /// <summary>
+        /// Attempts to load a branch by its name from repository.
+        /// Returns false if no branch with that name exists.
+        /// </summary>
+        /// <param name="branchName">The name of the branch to resolve</param>
+        /// <param name="branch">The branch resolved or <see langword="null"/> if branch does not exist</param>
+        /// <returns></returns>
         bool TryGetGitBranchByName(string branchName, out GitBranch branch);
     }
 
@@ -51,11 +106,11 @@ namespace GitTreeFilter.Core
             {
                 using (var repository = _repositoryFactory.Create(GitSolution))
                 {
-                    AssertValidRepository(repository, GitReference);
+                    AssertValidReference(repository, GitReference);
                     var changeset = CollectTreeChanges(repository);
 
                     // this works, but is quite slow
-                   var repositoryStatus = repository.RetrieveStatus(new StatusOptions()
+                    var repositoryStatus = repository.RetrieveStatus(new StatusOptions()
                     {
                         Show = StatusShowOption.IndexAndWorkDir,
                         IncludeIgnored = false,
@@ -75,7 +130,7 @@ namespace GitTreeFilter.Core
                     var untrackedChanges = filesToAdd.Select(x => CreateDiffedObject(repository, x)).ToHashSet();
 
                     var filesToRemove = GetExtraFilesToRemove(repositoryStatus).ToHashSet();
-                    
+
                     changeset.RemoveWhere(x => filesToRemove.Contains(x.AbsoluteFilePath));
                     changeset.UnionWith(untrackedChanges);
 
@@ -202,7 +257,7 @@ namespace GitTreeFilter.Core
                 var changes = GetFileDiffViewableChanges(branchDiffResult);
                 item = changes.Select(x => CreateDiffedObject(repository, x)).FirstOrDefault();
 
-                if(item == default)
+                if (item == default)
                 {
                     return false;
                 }
@@ -210,11 +265,11 @@ namespace GitTreeFilter.Core
             return true;
         }
 
-        public GitReference<GitCommitObject> LoadFromRepository(GitReference<GitCommitObject> storedGitReference)
+        public bool TryHydrate(GitReference<GitCommitObject> gitReference, out GitReference<GitCommitObject> hydratedReference)
         {
             using (var repository = _repositoryFactory.Create(GitSolution))
             {
-                return RepositoryExtensions.LoadFromRepository(repository, storedGitReference, ComparisonConfig);
+                return RepositoryExtensions.TryHydrate(repository, gitReference, out hydratedReference, ComparisonConfig);
             }
         }
 
@@ -254,7 +309,7 @@ namespace GitTreeFilter.Core
             );
         }
 
-        private static void AssertValidRepository(IRepository repository, GitReference<GitCommitObject> reference)
+        private static void AssertValidReference(IRepository repository, GitReference<GitCommitObject> reference)
         {
             if (reference == null)
             {
@@ -271,10 +326,6 @@ namespace GitTreeFilter.Core
             if (string.IsNullOrEmpty(activeBranch) || !branchesInRepo.Contains(activeBranch))
             {
                 throw new HeadNotFoundException();
-            }
-            if (activeBranch.Equals(reference))
-            {
-                throw new NothingToCompareException();
             }
         }
 

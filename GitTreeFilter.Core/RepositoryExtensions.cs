@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using GitTreeFilter.Core.Models;
 using LibGit2Sharp;
 
@@ -9,19 +10,25 @@ namespace GitTreeFilter.Core
         public static Commit GetTargetCommit(this IRepository repository, GitReference<GitCommitObject> target) =>
             repository.Lookup<Commit>(new ObjectId(target.Reference.Sha));
 
-        public static GitReference<GitCommitObject> LoadFromRepository(this IRepository repository, GitReference<GitCommitObject> target, IComparisonConfig comparisonConfig)
+        public static bool TryHydrate(this IRepository repository, GitReference<GitCommitObject> target, out GitReference<GitCommitObject> hydratedReference, IComparisonConfig comparisonConfig)
         {
+            hydratedReference = null;
             switch (target)
             {
                 case GitBranch gitBranch:
-                    return repository.LoadGitBranch(gitBranch, comparisonConfig);
+                    hydratedReference = repository.LoadGitBranch(gitBranch, comparisonConfig);
+                    break;
                 case GitTag gitTag:
-                    return repository.LoadGitTag(gitTag);
+                    hydratedReference = repository.LoadGitTag(gitTag);
+                    break;
                 case GitCommit gitCommit:
-                    return repository.LoadGitCommit(gitCommit);
+                    hydratedReference = repository.LoadGitCommit(gitCommit);
+                    break;
                 default:
                     throw new NotImplementedException();
             }
+
+            return hydratedReference != null;
         }
 
         /// <summary>
@@ -67,16 +74,17 @@ namespace GitTreeFilter.Core
         /// <returns></returns>
         public static GitReference<GitCommitObject> LoadGitBranch(this IRepository repository, GitBranch gitBranch, IComparisonConfig config)
         {
-            var branch = !string.IsNullOrEmpty(gitBranch.FriendlyName) ? repository.Branches[gitBranch.FriendlyName] : null;
-
-            if (string.IsNullOrEmpty(gitBranch.FriendlyName))
+            try
             {
+                var branch = !string.IsNullOrEmpty(gitBranch.FriendlyName) ? repository.Branches[gitBranch.FriendlyName] : null;
+                return new GitBranch(branch.Tip.ToGitCommitObject(), branch.FriendlyName);
+            } catch
+            {
+                // Branch removed, fall back to commit
                 var objectId = new ObjectId(gitBranch.Reference.Sha);
                 var commit = repository.Lookup<Commit>(objectId);
                 return commit?.ToGitCommitObject()?.ToGitCommit();
             }
-
-            return new GitBranch(branch.Tip.ToGitCommitObject(), branch.FriendlyName);
         }
 
         public static GitCommit ToGitCommit(this Commit x) => x.ToGitCommitObject().ToGitCommit();

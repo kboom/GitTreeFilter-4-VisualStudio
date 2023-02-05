@@ -1,4 +1,4 @@
-name: build
+name: Build
 
 on:
   push:
@@ -12,19 +12,36 @@ env:
 jobs:
   build:
     runs-on: windows-2022
+    permissions:
+      checks: write
     defaults:
       run:
         working-directory: ${{ github.workspace }} 
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
+        submodules: 'true'
         fetch-depth: 0
 
-    - name: Add MSBuild to PATH
+    - name: Track main branches in submodules
+      run: |
+        git submodule foreach git checkout main
+
+    - uses: actions/cache@v2
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.config') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1
       with:
         vs-version: '[17.0, ]'
+
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v1.0.5
 
     - name: Setup VSTest
       uses: darenm/Setup-VSTest@v1
@@ -33,9 +50,22 @@ jobs:
       run: nuget restore ${{env.SOLUTION_FILE_PATH}}
 
     - name: Build
-      run: |
-        msbuild ${{env.SOLUTION_FILE_PATH}} /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m
+      run: msbuild ${{env.SOLUTION_FILE_PATH}} /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m
       shell: powershell
 
-    - name: Tests
-      run: vstest.console.exe **\*.Tests.dll /TestCaseFilter:"FullyQualifiedName!=Xunit.Instances.VisualStudio&integration!=true" #exclude integration tests and the psuedo-tests that launch a VS instance
+    - name: Run vstests
+      uses: microsoft/vstest-action@v1.0.0
+      with:
+        testAssembly: GitTreeFilter.Core.Tests.dll
+        searchFolder: ${{ github.workspace }}\GitTreeFilter.Core.Tests\bin\Release\net472\
+        runInParallel: true
+        otherConsoleOptions: /Logger:trx
+
+    - name: Test Report
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: Test results
+        path: "TestResults/*.trx"                            
+        reporter: dotnet-trx
+        fail-on-error: true

@@ -77,7 +77,7 @@ namespace GitTreeFilter
             {
                 if(!Equals(_targetReference, value))
                 {
-                    _targetReference = _solutionRepository.LoadFromRepository(value);
+                    _ = _solutionRepository.TryHydrate(value, out _targetReference);
                     _solutionRepository.GitReference = _targetReference;
                     GitFilterChanged?.Invoke(this, new NotifyGitFilterChangedEventArgs(_targetReference));
                 }
@@ -184,7 +184,10 @@ namespace GitTreeFilter
                 var storedGitReference = _package.SettingsStore.GitReference;
                 if (storedGitReference != null)
                 {
-                    TargetReference = _solutionRepository.LoadFromRepository(storedGitReference);
+                    if(_solutionRepository.TryHydrate(storedGitReference, out var reference))
+                    {
+                        TargetReference = reference;
+                    }
                 }
                 if (TargetReference == null && _solutionRepository.TryGetGitBranchByName(
                     Options.DefaultBranch,
