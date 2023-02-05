@@ -1,4 +1,4 @@
-name: build
+name: Build
 
 on:
   push:
@@ -12,7 +12,8 @@ env:
 jobs:
   build:
     runs-on: windows-2022
-    permissions: write-all
+    permissions:
+      - checks: write
     defaults:
       run:
         working-directory: ${{ github.workspace }} 
