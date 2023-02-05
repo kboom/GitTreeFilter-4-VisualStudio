@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace GitTreeFilter.Core.Tests
 {
     [TestClass]
+    [TestCategory("SolutionRepository.Changeset")]
     public class ChangesetTest : SolutionRepositoryTest
     {
         [TestMethod]

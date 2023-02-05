@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace GitTreeFilter.Core.Tests
 {
     [TestClass]
+    [TestCategory("SolutionRepository.TryGetGitBranchByName")]
     public class TryGetGitBranchByNameTest : SolutionRepositoryTest
     {
         [DataTestMethod]

@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace GitTreeFilter.Core.Tests
 {
     [TestClass]
+    [TestCategory("SolutionRepository.TryHydrate")]
     public class TryHydrateTest : SolutionRepositoryTest
     {
         [DataTestMethod]
