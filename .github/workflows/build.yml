@@ -47,7 +47,7 @@ jobs:
     - name: Run vstests
       uses: microsoft/vstest-action@v1.0.0
       with:
-        testAssembly: '*.Tests.dll'
+        testAssembly: 'GitTreeFilter*.Tests.dll'
         searchFolder: .
         runInParallel: true
 
