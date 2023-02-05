@@ -47,11 +47,11 @@ jobs:
     - name: Run vstests
       uses: microsoft/vstest-action@v1.0.0
       with:
-        testAssembly: 'GitTreeFilter*.Tests.dll'
-        searchFolder: .
+        testAssembly: GitTreeFilter.Core.Tests
+        searchFolder: GitTreeFilter.Core.Tests
         runInParallel: true
 
-    - name: unit tests for Contoso Business Layer
+    - name: Publish unit test results
       uses: zyborg/dotnet-tests-report@v1
       with:
         project_path: GitTreeFilter.Core.Tests
