@@ -44,8 +44,12 @@ jobs:
       run: msbuild ${{env.SOLUTION_FILE_PATH}} /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m
       shell: powershell
 
-    - name: Tests
-      run:  vstest.console.exe **\*.Tests.dll
+    - name: Run vstests
+      uses: microsoft/vstest-action@v1.0.0
+      with:
+        testAssembly: *.Tests.dll
+        searchFolder: .
+        runInParallel: true
 
     - name: unit tests for Contoso Business Layer
       uses: zyborg/dotnet-tests-report@v1
