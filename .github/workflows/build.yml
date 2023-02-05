@@ -48,7 +48,7 @@ jobs:
       uses: microsoft/vstest-action@v1.0.0
       with:
         testAssembly: GitTreeFilter.Core.Tests.dll
-        searchFolder: ${{ github.workspace }}\GitTreeFilter.Core.Tests\bin\Debug\net472
+        searchFolder: ${{ github.workspace }}\GitTreeFilter.Core.Tests\bin\Release\net472\
         runInParallel: true
 
     - name: Test Report
