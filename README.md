@@ -4,6 +4,8 @@ This extension for Visual Studio 2022 allows you to filter solution explorer to 
 Navigate through all these files as usual, and compare the changes using a context menu item.
 This is extremely useful when you are developing a feature on your own branch and want to keep your views focused.
 
+![Demo](Docs/demo.gif)
+
 ## Attributions
 
 * Icons used:
