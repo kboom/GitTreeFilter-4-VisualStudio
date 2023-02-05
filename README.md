@@ -1,5 +1,7 @@
 # GitTreeFilter for Visual Studio
 
+![example workflow](https://github.com/kboom/GitTreeFilter-4-VisualStudio/actions/workflows/build.yml/badge.svg)
+
 This extension for Visual Studio 2022 allows you to filter solution explorer to include only the files changed when comparing to the worktree sometime in the past.
 Navigate through all these files as usual, and compare the changes using a context menu item.
 This is extremely useful when you are developing a feature on your own branch and want to keep your views focused.
