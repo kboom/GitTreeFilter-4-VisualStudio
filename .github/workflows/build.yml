@@ -28,6 +28,13 @@ jobs:
       run: |
         git submodule foreach git checkout main
 
+    - uses: actions/cache@v2
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.config') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1
       with:
