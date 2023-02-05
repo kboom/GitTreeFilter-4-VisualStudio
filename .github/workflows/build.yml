@@ -43,4 +43,4 @@ jobs:
       shell: powershell
 
     - name: Tests
-      run: vstest.console.exe **\*.Tests.dll /TestCaseFilter:"FullyQualifiedName!=Xunit.Instances.VisualStudio&integration!=true" #exclude integration tests and the psuedo-tests that launch a VS instance
+      run: vstest.console.exe **\*.Tests.dll"
