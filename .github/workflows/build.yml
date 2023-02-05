@@ -50,7 +50,7 @@ jobs:
         testAssembly: GitTreeFilter.Core.Tests.dll
         searchFolder: ${{ github.workspace }}\GitTreeFilter.Core.Tests\bin\Release\net472\
         runInParallel: true
-        codeCoverageEnabled: true
+        # codeCoverageEnabled: true
         otherConsoleOptions: /Logger:trx
 
     - name: Show files
