@@ -24,5 +24,7 @@ namespace GitTreeFilter.Core.Tests.Repositories
         });
 
         public string Name => nameof(BasicTestRepository);
+
+        public GitCommit Head => Commits[0];
     }
 }

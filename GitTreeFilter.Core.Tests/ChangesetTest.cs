@@ -1,6 +1,11 @@
-﻿using FluentAssertions;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using FluentAssertions;
+using FluentAssertions.Execution;
 using GitTreeFilter.Core.Exceptions;
 using GitTreeFilter.Core.Models;
+using GitTreeFilter.Core.Tests.DataSource;
 using GitTreeFilter.Core.Tests.Repositories;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -36,6 +41,44 @@ namespace GitTreeFilter.Core.Tests
                 .Should()
                 .Throw<RepositoryTargetNotFoundException>()
                 .WithMessage("Selected reference does not exist in repository");
+        }
+
+        [DataTestMethod]
+        [AllRepositoriesData]
+        public void ReturnsEmptyChangesetIfTargetEqualsHead(ITestRepository testRepository)
+        {
+            // given
+            var solutionRepository = CreateSolutionRepository(testRepository);
+            solutionRepository.GitReference = testRepository.Head;
+
+            // when
+            var changeset = solutionRepository.Changeset;
+
+            // then
+            using(new AssertionScope())
+            {
+                changeset.Should().NotBeNull();
+                changeset.Should().BeEmpty();
+            } 
+        }
+
+        [DataTestMethod]
+        [FirstRepositoryChangesetDataSource]
+        public void FirstRepositoryChangeset(ITestRepository testRepository, GitReference<GitCommitObject> gitReference, IImmutableSet<string> changedFilesPaths)
+        {
+            // given
+            var solutionRepository = CreateSolutionRepository(testRepository);
+            solutionRepository.GitReference = gitReference;
+
+            // when
+            var changeset = solutionRepository.Changeset;
+
+            // then
+            using (new AssertionScope())
+            {
+                changeset.Should().NotBeNull();
+                changeset.Select(x => x.AbsoluteFilePath).Should().BeEquivalentTo(changedFilesPaths);
+            }
         }
     }
 }

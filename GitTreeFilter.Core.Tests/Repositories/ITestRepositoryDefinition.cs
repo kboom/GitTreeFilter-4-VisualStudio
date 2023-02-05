@@ -7,6 +7,8 @@ namespace GitTreeFilter.Core.Tests.Repositories
     {
         GitSolution Solution { get; }
 
+        GitCommit Head { get;  }
+
         IReadOnlyList<GitCommitObject> CommitObjects { get; }
 
         IReadOnlyList<GitCommit> Commits { get; }
