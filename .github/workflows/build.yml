@@ -51,13 +51,10 @@ jobs:
         searchFolder: ${{ github.workspace }}\GitTreeFilter.Core.Tests\bin\Debug\net472
         runInParallel: true
 
-    - name: Publish unit test results
-      uses: zyborg/dotnet-tests-report@v1
+    - name: Test Report
+      uses: dorny/test-reporter@v1
+      if: success() || failure()
       with:
-        project_path: GitTreeFilter.Core.Tests
-        report_name: unit-tests
-        report_title: Unit Test Results
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        gist_name: unit-tests.md
-        gist_badge_label: 'Unit tests: %Counters_passed%/%Counters_total%'
-        gist_token: ${{ secrets.GIST_TOKEN }}
+        name: Unit test results
+        path: TestResults/*.xml
+        reporter: dotnet-trx
