@@ -6,6 +6,16 @@ This is extremely useful when you are developing a feature on your own branch an
 
 ![Demo](Docs/demo.gif)
 
+## Rationale
+
+### Stay focused on your own changes in large projects
+
+This plugin allows you to filter solution explorer by showing only the changes you care about. This includes the files that have been changed comparing your current working directory to a Git worktree you can specify as reference by using a branch name, tag name or specific commit.
+
+### Get instant feedback about the actual changes made since the beginning of your work
+
+Every file listed in the solution explorer when the filter is active has a context menu "show changes" which brings the difference between the current file and the one at the selected point in history.
+
 ## Attributions
 
 * Icons used:
