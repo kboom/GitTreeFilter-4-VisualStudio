@@ -27,6 +27,12 @@ namespace GitTreeFilter.Core.Tests.Repositories
             new GitBranch(CommitObjects.ElementAt(0), "origin/main")
         });
 
+        public IReadOnlyList<GitTag> Tags => Array.AsReadOnly(new GitTag[] {
+            new GitTag(CommitObjects.ElementAt(2), "tag1"),
+            new GitTag(CommitObjects.ElementAt(4), "tag2")
+        });
+
+
         public string Name => nameof(BasicTestRepository);
 
         public GitCommit Head => Commits[0];
