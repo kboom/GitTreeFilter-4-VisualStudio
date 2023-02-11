@@ -10,7 +10,6 @@
         <Icon>Resources\GitTreeFilter.ico</Icon>
         <PreviewImage>Resources\pin-lg.png</PreviewImage>
         <Tags>productivity;git;navigation;solution</Tags>
-        <Preview>true</Preview>
     </Metadata>
     <Installation>
         <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0, 18.0)">
