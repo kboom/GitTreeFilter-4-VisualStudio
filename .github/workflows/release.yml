@@ -10,12 +10,11 @@ env:
   SOLUTION_FILE_PATH: .
   DEFAULT_BRANCH: main
 
+permissions: write-all
+
 jobs:
   build-test-and-release-vs22:
     runs-on: windows-2022
-    permissions:
-      contents: write
-      checks: write
     defaults:
       run:
         working-directory: ${{ github.workspace }}
