@@ -1,11 +1,12 @@
 {
     "$schema": "http://json.schemastore.org/vsix-publish",
     "categories": [
-        "productivity",
-        "coding"
+        "Tools",
+        "Coding",
+        "Source Control"
     ],
     "identity": {
-        "internalName": "kboom.gittreefilter"
+        "internalName": "GitTreeFilter"
     },
     "assetFiles": [],
     "overview": "../README.md",
