@@ -14,6 +14,10 @@ namespace GitTreeFilter.Core
         /// </summary>
         GitSolution GitSolution { get; }
 
+        /// <summary>
+        /// Configuration of the solution repository.
+        /// This will affect the behavior of some methods.
+        /// </summary>
         IComparisonConfig ComparisonConfig { get; }
 
         /// <summary>
@@ -139,36 +143,6 @@ namespace GitTreeFilter.Core
             }
         }
 
-        private HashSet<GitItem> CollectTreeChanges(IRepository repository)
-        {
-            var compareOptions = new CompareOptions
-            {
-                Algorithm = DiffAlgorithm.Minimal,
-                IncludeUnmodified = false,
-            };
-
-            var targetCommit = RepositoryExtensions.GetTargetCommit(repository, GitReference);
-
-            var branchDiffResult = repository.Diff.Compare<TreeChanges>(
-               targetCommit.Tree,
-                repository.Head.Tip.Tree,
-                compareOptions);
-
-            var changes = GetViewableChanges(branchDiffResult);
-            var changeset = changes.Select(x => CreateDiffedObject(repository, x)).ToHashSet();
-            return changeset;
-        }
-
-        internal SolutionRepository(
-            GitSolution gitSolution,
-            IComparisonConfig comparisionConfig,
-            GitRepositoryFactory repositoryFactory)
-        {
-            GitSolution = gitSolution;
-            ComparisonConfig = comparisionConfig;
-            _repositoryFactory = repositoryFactory;
-        }
-
         public IEnumerable<GitCommit> GetRecentCommits(int number = 50)
         {
             using (var repository = _repositoryFactory.Create(GitSolution))
@@ -201,7 +175,7 @@ namespace GitTreeFilter.Core
                      {
                          try
                          {
-                             var commit = repository.Lookup<Commit>(x.Reference.TargetIdentifier);
+                             var commit = repository.Lookup<Commit>(x.Target.Id);
                              var gitCommit = RepositoryExtensions.ToGitCommitObject(commit);
                              return RepositoryExtensions.ToGitTag(gitCommit, x.FriendlyName);
                          }
@@ -271,6 +245,16 @@ namespace GitTreeFilter.Core
             {
                 return RepositoryExtensions.TryHydrate(repository, gitReference, out hydratedReference, ComparisonConfig);
             }
+        }
+
+        internal SolutionRepository(
+            GitSolution gitSolution,
+            IComparisonConfig comparisionConfig,
+            GitRepositoryFactory repositoryFactory)
+        {
+            GitSolution = gitSolution;
+            ComparisonConfig = comparisionConfig;
+            _repositoryFactory = repositoryFactory;
         }
 
         private GitItem CreateDiffedObject(
@@ -353,6 +337,26 @@ namespace GitTreeFilter.Core
                 .Concat(repositoryStatus.Staged)
                 .Concat(repositoryStatus.RenamedInWorkDir)
                 .Concat(repositoryStatus.Added).Select(x => x.FilePath);
+        }
+
+        private HashSet<GitItem> CollectTreeChanges(IRepository repository)
+        {
+            var compareOptions = new CompareOptions
+            {
+                Algorithm = DiffAlgorithm.Minimal,
+                IncludeUnmodified = false,
+            };
+
+            var targetCommit = RepositoryExtensions.GetTargetCommit(repository, GitReference);
+
+            var branchDiffResult = repository.Diff.Compare<TreeChanges>(
+               targetCommit.Tree,
+                repository.Head.Tip.Tree,
+                compareOptions);
+
+            var changes = GetViewableChanges(branchDiffResult);
+            var changeset = changes.Select(x => CreateDiffedObject(repository, x)).ToHashSet();
+            return changeset;
         }
 
         private static IEnumerable<string> GetExtraFilesToRemove(RepositoryStatus repositoryStatus)

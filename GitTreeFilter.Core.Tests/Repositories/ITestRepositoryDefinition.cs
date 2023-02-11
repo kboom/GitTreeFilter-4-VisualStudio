@@ -15,6 +15,8 @@ namespace GitTreeFilter.Core.Tests.Repositories
 
         IReadOnlyList<GitBranch> Branches { get; }
 
+        IReadOnlyList<GitTag> Tags { get; }
+
         string Name { get ; }
     }
 }
