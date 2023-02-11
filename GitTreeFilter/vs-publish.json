@@ -1,15 +1,18 @@
 {
     "$schema": "http://json.schemastore.org/vsix-publish",
     "categories": [
-        "Tools",
-        "Coding",
-        "Source Control"
+        "visual studio extensions",
+        "coding",
+        "source control"
     ],
     "identity": {
         "internalName": "GitTreeFilter"
     },
     "assetFiles": [],
+    "priceCategory": "free",
+    "private": false,
     "overview": "../README.md",
     "publisher": "kboom",
+    "qna": true,
     "repo": "http://github.com/kboom/git-tree-filter-4vs"
 }
