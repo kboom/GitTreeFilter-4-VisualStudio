@@ -67,16 +67,16 @@ namespace GitTreeFilter.Core.Tests
         [DataTestMethod]
         [DataRow(0)]
         [DataRow(1)]
-        public void NumberOfTagsRequestedMatch(int expectedCommitCount)
+        public void NumberOfTagsRequestedMatch(int expectedTagCount)
         {
             // given
             var solutionRepository = CreateSolutionRepository(TestRepositories.First);
 
             // when
-            var recentTags = solutionRepository.GetRecentTags(expectedCommitCount);
+            var recentTags = solutionRepository.GetRecentTags(expectedTagCount);
 
             // then
-            recentTags.Should().HaveCount(expectedCommitCount);
+            recentTags.Should().HaveCount(expectedTagCount);
         }
 
         [TestMethod]
@@ -90,7 +90,7 @@ namespace GitTreeFilter.Core.Tests
             var recentTags = solutionRepository.GetRecentTags(moreTagsThanExist);
 
             // then
-            recentTags.Should().HaveCount(TestRepositories.First.Commits.Count);
+            recentTags.Should().HaveCount(TestRepositories.First.Tags.Count);
         }
     }
 }
