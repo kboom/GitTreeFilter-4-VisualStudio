@@ -10,8 +10,7 @@ env:
   SOLUTION_FILE_PATH: .
   DEFAULT_BRANCH: main
 
-permissions:
- contents: write
+permissions: write-all
 
 jobs:
   build-test-and-release-vs22:
