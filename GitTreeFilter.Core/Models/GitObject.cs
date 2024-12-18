@@ -1,7 +1,6 @@
-﻿using System;
+﻿using LibGit2Sharp;
+using System;
 using System.Collections.Generic;
-using System.Xml.Linq;
-using LibGit2Sharp;
 
 namespace GitTreeFilter.Core.Models
 {
@@ -55,12 +54,14 @@ namespace GitTreeFilter.Core.Models
 
         public GitReference(T gitObject)
         {
-            _gitObject = gitObject;
+            _gitObject = gitObject ?? throw new ArgumentNullException(nameof(gitObject));
         }
 
         public T Reference => _gitObject;
 
         public abstract string FriendlyName { get; }
+
+        public abstract bool PinToMergeHead { get; }
 
         public override bool Equals(object obj) => obj is GitReference<T> reference && EqualityComparer<T>.Default.Equals(_gitObject, reference._gitObject);
         public override int GetHashCode() => -848059651 + EqualityComparer<T>.Default.GetHashCode(_gitObject);
@@ -84,18 +85,34 @@ namespace GitTreeFilter.Core.Models
         public string ShortMessage => Reference.ShortMessage;
 
         public string ShortSha => Reference.Sha.Substring(0, 7);
+
+        public override bool PinToMergeHead => false;
     }
 
     public class GitBranch : GitReference<GitCommitObject>
     {
         private readonly string _shortName;
+        private readonly bool _pinToMergeHead;
 
-        public GitBranch(GitCommitObject target, string shortName) : base(target)
+        public GitBranch(GitCommitObject target, string shortName, bool pinToMergeHead = false) : base(target)
         {
+            if (target is null)
+            {
+                throw new ArgumentNullException(nameof(target));
+            }
+
+            if (string.IsNullOrEmpty(shortName))
+            {
+                throw new ArgumentException("Cannot be null or empty string", nameof(shortName));
+            }
+
             _shortName = shortName;
+            _pinToMergeHead = pinToMergeHead;
         }
 
         public override string FriendlyName => _shortName;
+
+        public override bool PinToMergeHead => _pinToMergeHead;
     }
 
     public class GitTag : GitReference<GitCommitObject>
@@ -111,5 +128,7 @@ namespace GitTreeFilter.Core.Models
 
         public string ShortSha => Reference.Sha.Substring(0, 7);
 
+        // convert to usable setting
+        public override bool PinToMergeHead => false;
     }
 }

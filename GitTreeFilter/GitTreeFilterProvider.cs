@@ -18,6 +18,9 @@ using System.Threading.Tasks;
 
 namespace GitTreeFilter.Filters
 {
+    /// <summary>
+    /// Central class which provides filtering capabilities this plugin offers.
+    /// </summary>
     [SolutionTreeFilterProvider(GitFiltersPackageGuids.guidCommonAncestorFilterCmdSetString, GitFiltersPackageGuids.CommonAncestorFilterId)]
     public sealed class GitFilterProvider : HierarchyTreeFilterProvider
     {
@@ -72,7 +75,7 @@ namespace GitTreeFilter.Filters
             }
 
             public void OnFilterChangedHandler(object sender, NotifyGitFilterChangedEventArgs args) =>
-                ItemSet?.InvalidateAsync(new CancellationToken());
+                ThreadHelper.JoinableTaskFactory.RunAsync(async () => await ItemSet?.InvalidateAsync(new CancellationToken())).FileAndForget("GitTreeFilter/GitFileFilter/OnFilterChangedHandler");
 
             protected override void DisposeManagedResources()
             {
@@ -149,7 +152,6 @@ namespace GitTreeFilter.Filters
 
                 public IEnumerator GetEnumerator() => IncludedItems.GetEnumerator();
 
-                // TODO try to speed this up
                 public async Task<bool> InvalidateAsync(CancellationToken cancellationToken)
                 {
                     await TaskScheduler.Default;

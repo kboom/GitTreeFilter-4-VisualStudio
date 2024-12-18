@@ -68,6 +68,7 @@ namespace GitTreeFilter.Commands
             Close();
         }
 
+        // TODO: add checkbox in case of branch to pin to merge head!
         private void BranchList_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             if (BranchList.SelectedItem != null)

@@ -98,7 +98,7 @@ namespace GitTreeFilter.Core
                 {
                     return repository.Branches
                         .Where(p => !ComparisonConfig.OriginRefsOnly || p.IsRemote)
-                        .Select(x => new GitBranch(x.Tip.ToGitCommitObject(), x.FriendlyName))
+                        .Select(x => new GitBranch(x.Tip.ToGitCommitObject(), x.FriendlyName, true)) // flip to false and add a checkbox to control this
                         .ToList();
                 }
             }
@@ -206,7 +206,7 @@ namespace GitTreeFilter.Core
                 }
 
                 var commit = branchObj.Tip;
-                branch = new GitBranch(RepositoryExtensions.ToGitCommitObject(commit), branchName);
+                branch = new GitBranch(RepositoryExtensions.ToGitCommitObject(commit), branchName, branch.PinToMergeHead);
                 return true;
             }
         }

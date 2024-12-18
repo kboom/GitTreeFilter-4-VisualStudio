@@ -17,10 +17,6 @@ namespace GitTreeFilter.Tagging
 
     internal class ItemTagManager : IItemTagManager
     {
-        private RenamedPathTable<ProjectItem> renamedProjectItemTable;
-        private RenamedPathTable<Project> renamedProjectTable;
-        private ProjectTable editedProjectTable;
-
         public void CreateTagTables() => Reset();
 
         public void MarkProjAsChanged(IVsHierarchyItem vsHierarchyItem)
@@ -31,14 +27,14 @@ namespace GitTreeFilter.Tagging
             _ = vsHierarchy.GetProperty(itemId, (int)__VSHPROPID.VSHPROPID_ExtObject, out var itemObject);
             var project = itemObject as Project;
 
-            this.editedProjectTable.Insert(project, project.FullName);
+            _editedProjectTable.Insert(project, project.FullName);
         }
 
-        public bool IsProjEdited(Project project) => !(editedProjectTable.Select(project) is null);
+        public bool IsProjEdited(Project project) => !(_editedProjectTable.Select(project) is null);
 
-        public string GetOldFilePathFromRenamed(Project project) => renamedProjectTable.Select(project);
+        public string GetOldFilePathFromRenamed(Project project) => _renamedProjectTable.Select(project);
 
-        public string GetOldFilePathFromRenamed(ProjectItem projectItem) => renamedProjectItemTable.Select(projectItem);
+        public string GetOldFilePathFromRenamed(ProjectItem projectItem) => _renamedProjectItemTable.Select(projectItem);
 
         public void SetOldFilePathOnRenamedItem(IVsHierarchyItem vsHierarchyItem, string oldPath)
         {
@@ -48,24 +44,28 @@ namespace GitTreeFilter.Tagging
             _ = vsHierarchy.GetProperty(itemId, (int)__VSHPROPID.VSHPROPID_ExtObject, out var itemObject);
             if (itemObject is ProjectItem projectItem)
             {
-                renamedProjectItemTable.Insert(projectItem, oldPath);
+                _renamedProjectItemTable.Insert(projectItem, oldPath);
             }
 
             if (itemObject is Project project)
             {
-                renamedProjectTable.Insert(project, oldPath);
+                _renamedProjectTable.Insert(project, oldPath);
             }
         }
 
         public void Reset()
         {
-            renamedProjectItemTable?.Dispose();
-            renamedProjectTable?.Dispose();
-            editedProjectTable?.Dispose();
+            _renamedProjectItemTable?.Dispose();
+            _renamedProjectTable?.Dispose();
+            _editedProjectTable?.Dispose();
 
-            renamedProjectItemTable = new RenamedPathTable<EnvDTE.ProjectItem>();
-            renamedProjectTable = new RenamedPathTable<EnvDTE.Project>();
-            editedProjectTable = new ProjectTable();
+            _renamedProjectItemTable = new RenamedPathTable<ProjectItem>();
+            _renamedProjectTable = new RenamedPathTable<Project>();
+            _editedProjectTable = new ProjectTable();
         }
+
+        private RenamedPathTable<ProjectItem> _renamedProjectItemTable;
+        private RenamedPathTable<Project> _renamedProjectTable;
+        private ProjectTable _editedProjectTable;
     }
 }

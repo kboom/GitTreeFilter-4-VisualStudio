@@ -13,6 +13,7 @@ namespace GitTreeFilter
 {
     internal sealed class GitTreeFilterSetting : StringEnum<GitTreeFilterSetting>
     {
+        public static readonly GitTreeFilterSetting PinToMergeHead = Create(nameof(PinToMergeHead));
         public static readonly GitTreeFilterSetting TargetGitReference = Create(nameof(TargetGitReference));
         public static readonly GitTreeFilterSetting TargetGitReferenceName = Create(nameof(TargetGitReferenceName));
         public static readonly GitTreeFilterSetting TargetGitReferenceType = Create(nameof(TargetGitReferenceType));
@@ -47,6 +48,8 @@ namespace GitTreeFilter
             return new GitFilterSettingStore(userSettingsStore, () => package.Service.Solution);
         }
 
+        private bool PinToMergeHead => _userSettingsStore.GetBoolean(SettingStoreVault, GitTreeFilterSetting.PinToMergeHead, false);
+
         private string TargetGitReferenceSha => _userSettingsStore.GetString(SettingStoreVault, GitTreeFilterSetting.TargetGitReference.ToString(), null);
 
         private string TargetGitReferenceType => _userSettingsStore.GetString(SettingStoreVault, GitTreeFilterSetting.TargetGitReferenceType.ToString(), null);
@@ -74,7 +77,7 @@ namespace GitTreeFilter
                 switch (TargetGitReferenceType)
                 {
                     case nameof(GitBranch):
-                        return new GitBranch(gitCommitObject, TargetGitReferenceName);
+                        return new GitBranch(gitCommitObject, TargetGitReferenceName, PinToMergeHead);
                     case nameof(GitCommit):
                         return new GitCommit(gitCommitObject);
                     case nameof(GitTag):
@@ -96,6 +99,7 @@ namespace GitTreeFilter
 
             if (e?.TargetReference != null)
             {
+                _userSettingsStore.SetString(SettingStoreVault, GitTreeFilterSetting.PinToMergeHead.ToString(), e.TargetReference.PinToMergeHead.ToString());
                 _userSettingsStore.SetString(SettingStoreVault, GitTreeFilterSetting.TargetGitReference.ToString(), e.TargetReference.Reference.Sha);
                 _userSettingsStore.SetString(SettingStoreVault, GitTreeFilterSetting.TargetGitReferenceName.ToString(), e.TargetReference.FriendlyName);
                 _userSettingsStore.SetString(SettingStoreVault, GitTreeFilterSetting.TargetGitReferenceType.ToString(), e.TargetReference.GetType().Name);

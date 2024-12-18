@@ -30,7 +30,7 @@ namespace BranchDiffer.VS.Shared
 
         [Category(c_category)]
         [DisplayName("Default branch to compare to")]
-        [Description("The default branch for which a tree to compare to will be taken")]
+        [Description("The default branch for which a tree to compare to will be taken.")]
         public string DefaultBranch { get; set; } = "master";
 
         [Category(c_category)]
