@@ -78,7 +78,7 @@ namespace GitTreeFilter.Filters
             {
                 _gitFiltersService.GitFilterChanged -= OnFilterChangedHandler;
                 _gitFiltersService.IsFilterApplied = false;
-                _gitFiltersService.ItemTagManager.Reset();
+                _gitFiltersService.ItemTagManager?.Reset();
                 base.DisposeManagedResources();
             }
 

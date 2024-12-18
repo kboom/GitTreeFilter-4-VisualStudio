@@ -28,7 +28,7 @@ namespace GitTreeFilter
     [Guid(GitFiltersPackageGuids.PackageGuidString)]
     [ProvideService((typeof(SGitFilterService)), IsAsyncQueryable = true)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    [ProvideAutoLoad(VSConstants.UICONTEXT.RepositoryOpen_string, PackageAutoLoadFlags.BackgroundLoad)]
+    [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_string, PackageAutoLoadFlags.BackgroundLoad)]
     [ProvideOptionPage(typeof(GitFiltersConfiguration), "Git Tree Filters", "Git Tree Filters Options", 0, 0, true)]
     public sealed class GitFiltersPackage : AsyncPackage, IGitFiltersPackage
     {
