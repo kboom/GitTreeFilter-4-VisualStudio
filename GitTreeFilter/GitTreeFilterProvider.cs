@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.ComponentModel.Composition;
-using System.Threading;
-using System.Threading.Tasks;
-using GitTreeFilter.Core;
+﻿using GitTreeFilter.Core;
 using GitTreeFilter.Core.Exceptions;
 using GitTreeFilter.Core.Models;
 using GitTreeFilter.Tagging;
@@ -15,7 +8,13 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
-using Newtonsoft.Json.Linq;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.ComponentModel.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace GitTreeFilter.Filters
 {

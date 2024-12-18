@@ -130,6 +130,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Libraries\Microsoft.VisualStudio.Diagnostics.Assert.dll</HintPath>
     </Reference>
+    <PackageReference Include="Microsoft.VisualStudio.TeamFoundation.Git.Extensibility">
+      <Version>17.0.32322.3</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.4.2119">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

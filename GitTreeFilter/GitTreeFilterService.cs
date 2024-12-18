@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BranchDiffer.VS.Shared;
@@ -13,6 +15,7 @@ using Microsoft;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TeamFoundation.Git.Extensibility;
 using Microsoft.VisualStudio.Threading;
 
 namespace GitTreeFilter
@@ -47,7 +50,8 @@ namespace GitTreeFilter
     public enum PluginLifecycleState
     {
         RUNNING,
-        LOADING
+        LOADING,
+        INACTIVE
     }
 
     public class NotifyGitFilterLifecycleEventArgs : EventArgs
@@ -75,7 +79,7 @@ namespace GitTreeFilter
             get => _targetReference;
             set
             {
-                if(!Equals(_targetReference, value))
+                if (!Equals(_targetReference, value))
                 {
                     _ = _solutionRepository.TryHydrate(value, out _targetReference);
                     _solutionRepository.GitReference = _targetReference;
@@ -117,7 +121,8 @@ namespace GitTreeFilter
             if (_dte != null)
             {
                 _dte.Events.SolutionEvents.Opened += SetUp;
-                _dte.Events.SolutionEvents.BeforeClosing += () => {
+                _dte.Events.SolutionEvents.BeforeClosing += () =>
+                {
                     PluginState = PluginLifecycleState.LOADING;
                     Solution = new GitSolution(string.Empty);
                     // also unregister commands
@@ -127,7 +132,7 @@ namespace GitTreeFilter
                 if (solutionLoaded)
                 {
                     await SetUpAsync();
-                } 
+                }
             }
             else
             {
@@ -154,9 +159,15 @@ namespace GitTreeFilter
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Setting up solution information for GitFilterService"));
-            var absoluteSolutionPath = _dte.Solution.FullName;
-            var solutionDirectory = System.IO.Path.GetDirectoryName(absoluteSolutionPath);
-            var gitSolution = new GitSolution(solutionDirectory);
+
+            if (!TryGetRootRepositoryPath(out string repositoryRootPath))
+            {
+                PluginState = PluginLifecycleState.INACTIVE;
+                Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Could not identify GIT repository to use, deactivating the plugin."));
+                return;
+            }
+
+            var gitSolution = new GitSolution(repositoryRootPath);
 
             Solution = gitSolution;
             Options = _package.Configuration;
@@ -169,6 +180,47 @@ namespace GitTreeFilter
             await CommandRegistrar.InitializeAsync(_package);
 
             PluginState = PluginLifecycleState.RUNNING;
+        }
+
+        private bool TryGetRootRepositoryPath(out string repositoryPath)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            var gitExt = (IGitExt)ServiceProvider.GlobalProvider.GetService(typeof(IGitExt));
+            if (gitExt != null && gitExt.ActiveRepositories.Count > 0)
+            {
+                if (gitExt.ActiveRepositories.Count > 1)
+                {
+                    string solutionPath = _dte.Solution.FullName;
+                    if (!string.IsNullOrEmpty(solutionPath))
+                    {
+                        IGitRepositoryInfo matchingRepository = gitExt.ActiveRepositories.FirstOrDefault(x =>
+                        {
+                            var repoUri = new Uri(x.RepositoryPath, UriKind.Absolute);
+                            var solutionUri = new Uri(solutionPath, UriKind.Absolute);
+
+                            return Uri.Compare(repoUri, solutionUri, UriComponents.Path, UriFormat.Unescaped, StringComparison.OrdinalIgnoreCase) == 0;
+                        });
+
+                        if (matchingRepository != null)
+                        {
+                            repositoryPath = Path.GetFullPath(matchingRepository.RepositoryPath);
+                            return true;
+                        }
+                    }
+
+                    Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "There are multiple repositories loaded, choosing the first one."));
+                }
+
+                IGitRepositoryInfo gitRepositoryInfo = gitExt.ActiveRepositories.FirstOrDefault();
+                repositoryPath = gitRepositoryInfo.RepositoryPath;
+                return true;
+            }
+            else
+            {
+                repositoryPath = null;
+                return false;
+            }
         }
 
         private void ReadDefaults()
@@ -184,7 +236,7 @@ namespace GitTreeFilter
                 var storedGitReference = _package.SettingsStore.GitReference;
                 if (storedGitReference != null)
                 {
-                    if(_solutionRepository.TryHydrate(storedGitReference, out var reference))
+                    if (_solutionRepository.TryHydrate(storedGitReference, out var reference))
                     {
                         TargetReference = reference;
                     }

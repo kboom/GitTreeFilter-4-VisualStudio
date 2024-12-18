@@ -24,14 +24,12 @@ namespace GitTreeFilter
         Task<T> GetServiceAsync<S, T>();
     }
     
-    // todo store and load setting!
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid(GitFiltersPackageGuids.PackageGuidString)]
     [ProvideService((typeof(SGitFilterService)), IsAsyncQueryable = true)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExists_string, PackageAutoLoadFlags.BackgroundLoad)]
-    [ProvideOptionPage(typeof(GitFiltersConfiguration),
-    "Git Tree Filters", "Git Tree Filters Options", 0, 0, true)]
+    [ProvideAutoLoad(VSConstants.UICONTEXT.RepositoryOpen_string, PackageAutoLoadFlags.BackgroundLoad)]
+    [ProvideOptionPage(typeof(GitFiltersConfiguration), "Git Tree Filters", "Git Tree Filters Options", 0, 0, true)]
     public sealed class GitFiltersPackage : AsyncPackage, IGitFiltersPackage
     {
         public IGitFilterService Service { get; private set; }
