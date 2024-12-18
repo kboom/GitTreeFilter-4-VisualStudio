@@ -152,7 +152,7 @@ namespace GitTreeFilter
         private void SetUp()
         {
             // Don't block
-            SetUpAsync();
+            ThreadHelper.JoinableTaskFactory.RunAsync(async () => await SetUpAsync()).FileAndForget("GitTreeFilter/GitTreeFilterService/SetUpAsync");
         }
 
         private async Task SetUpAsync()
