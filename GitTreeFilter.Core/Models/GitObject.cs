@@ -66,6 +66,8 @@ namespace GitTreeFilter.Core.Models
 
         public abstract bool PinToMergeHead { get; }
 
+        public abstract GitReference<GitCommitObject> Clone();
+
         public override bool Equals(object obj) => obj is GitReference<T> reference && EqualityComparer<T>.Default.Equals(_gitObject, reference._gitObject);
         public override int GetHashCode() => -848059651 + EqualityComparer<T>.Default.GetHashCode(_gitObject);
 
@@ -82,6 +84,10 @@ namespace GitTreeFilter.Core.Models
 
     public class GitCommit : GitReference<GitCommitObject>
     {
+        public GitCommit(GitCommit source) : base(source.Reference)
+        {
+        }
+
         public GitCommit(GitCommitObject target) : base(target) {
         }
 
@@ -92,11 +98,16 @@ namespace GitTreeFilter.Core.Models
         public string ShortSha => Reference.Sha.Substring(0, 7);
 
         public override bool PinToMergeHead => false;
+
+        public override GitReference<GitCommitObject> Clone()
+        {
+            return new GitCommit(this);
+        }
     }
 
     public class GitBranch : GitReference<GitCommitObject>
     {
-        public GitBranch(GitBranch source, bool pinToMergeHead) : this(source.Reference, source._shortName, pinToMergeHead)
+        public GitBranch(GitBranch source, bool pinToMergeHead = false) : this(source.Reference, source._shortName, pinToMergeHead)
         {
 
         }
@@ -121,13 +132,18 @@ namespace GitTreeFilter.Core.Models
 
         public override bool PinToMergeHead => _pinToMergeHead;
 
+        public override GitReference<GitCommitObject> Clone()
+        {
+            return new GitBranch(this, PinToMergeHead);
+        }
+
         private readonly string _shortName;
         private readonly bool _pinToMergeHead;
     }
 
     public class GitTag : GitReference<GitCommitObject>
     {
-        public GitTag(GitTag source, bool pinToMergeHead) : this(source.Reference, source._name, pinToMergeHead)
+        public GitTag(GitTag source, bool pinToMergeHead = false) : this(source.Reference, source._name, pinToMergeHead)
         {
         }
 
@@ -142,6 +158,11 @@ namespace GitTreeFilter.Core.Models
         public string ShortSha => Reference.Sha.Substring(0, 7);
 
         public override bool PinToMergeHead => _pinToMergeHead;
+
+        public override GitReference<GitCommitObject> Clone()
+        {
+            return new GitTag(this, PinToMergeHead);
+        }
 
         private readonly string _name;
         private readonly bool _pinToMergeHead;

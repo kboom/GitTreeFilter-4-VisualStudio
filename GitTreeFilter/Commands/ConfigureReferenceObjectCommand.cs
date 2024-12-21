@@ -18,6 +18,13 @@ namespace GitTreeFilter.Commands
 
             _gitFiltersSettingStore = gitFiltersSettingStore;
         }
+
+        public static async Task<ConfigureReferenceObjectCommand> CreateAsync(IGitFiltersPackage package)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            return new ConfigureReferenceObjectCommand(package.Service, package.SettingsStore);
+        }
+
         public override void OnExecute(object sender, EventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -69,12 +76,6 @@ namespace GitTreeFilter.Commands
             {
                 dialog.BranchListData.Add(branch);
             }
-        }
-
-        public static async Task<ConfigureReferenceObjectCommand> CreateAsync(IGitFiltersPackage package)
-        {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            return new ConfigureReferenceObjectCommand(package.Service, package.SettingsStore);
         }
     }
 }

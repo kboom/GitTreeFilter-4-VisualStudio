@@ -22,7 +22,7 @@ namespace GitTreeFilter.Commands
             {
                 if (_selectedReference != value)
                 {
-                    _selectedReference = value;
+                    _selectedReference = value.Clone();
                     UpdateControls();
                     OnPropertyChanged(nameof(SelectedReference));
                 }
@@ -45,15 +45,21 @@ namespace GitTreeFilter.Commands
             }
         }
 
-        public Visibility MergeHeadCheckBoxVisibility =>
-            SelectedReference is GitBranch || SelectedReference is GitTag
-                ? Visibility.Visible
-                : Visibility.Hidden;
+        public Visibility MergeHeadCheckBoxVisibility
+        {
+            get => _mergeHeadCheckBoxVisibility;
+            set
+            {
+                _mergeHeadCheckBoxVisibility = value;
+                OnPropertyChanged(nameof(MergeHeadCheckBoxVisibility));
+            }
+        }
 
         public bool IsOkEnabled
         {
             get => _isEnabled;
-            set {
+            set
+            {
                 _isEnabled = value;
                 OnPropertyChanged(nameof(IsOkEnabled));
             }
@@ -70,6 +76,12 @@ namespace GitTreeFilter.Commands
                 {
                     IsOkEnabled = SelectedReference != null;
                 }
+            };
+
+            Tabs.SelectionChanged += (sender, args) => MergeHeadCheckBoxVisibility = Tabs.SelectedItem switch
+            {
+                var item when item == BranchesTab || item == TagsTab => Visibility.Visible,
+                _ => Visibility.Hidden
             };
         }
 
@@ -124,5 +136,6 @@ namespace GitTreeFilter.Commands
         private GitReference<GitCommitObject> _selectedReference;
         private bool _pinToMergeHead;
         private bool _isEnabled;
+        private Visibility _mergeHeadCheckBoxVisibility;
     }
 }
