@@ -83,7 +83,7 @@ namespace GitTreeFilter
                     case nameof(GitCommit):
                         return new GitCommit(gitCommitObject);
                     case nameof(GitTag):
-                        return new GitTag(gitCommitObject, options.TargetGitReferenceName);
+                        return new GitTag(gitCommitObject, options.TargetGitReferenceName, options.PinToMergeHead);
                     default:
                         ActivityLog.LogWarning(nameof(ConfigureReferenceObjectCommand), $"Did not recognize target reference type {options.TargetGitReferenceType}");
                         CleanValues();

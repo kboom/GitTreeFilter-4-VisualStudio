@@ -10,12 +10,14 @@
              Title="Select GIT object reference"
              WindowStartupLocation="CenterScreen" 
              ResizeMode="NoResize"
-             ShowInTaskbar="False">
+             ShowInTaskbar="False"
+             DataContext="{Binding RelativeSource={RelativeSource Self}}">
 
     <Grid>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="20,0,0,10">
             <CheckBox x:Name="MergeHeadCheckBox"
                       Content="Only my changes"
+                      Visibility="{Binding MergeHeadCheckBoxVisibility, Mode=OneWay}"
                       IsChecked="{Binding PinToMergeHead, Mode=TwoWay}"
                       VerticalAlignment="Center" />
         </StackPanel>
@@ -27,7 +29,8 @@
                     Click="CancelBtn_Click"/>
             <Button x:Name="OKBtn" 
                     Width="75" 
-                    Content="OK" 
+                    Content="OK"
+                    IsEnabled="{Binding IsOkEnabled, Mode=OneWay}"
                     Click="OKBtn_Click"/>
         </StackPanel>
         <TabControl Name="Tabs" Margin="15,15,15,46">
@@ -39,11 +42,11 @@
                     </StackPanel>
                 </TabItem.Header>
                 <Grid Background="#FFE5E5E5">
-                    <ListBox Name="BranchList" SelectedItem="{Binding SelectedReference, Mode=TwoWay}">
+                    <ListBox Name="BranchList" ItemsSource="{Binding BranchListData, Mode=OneWay}" SelectedItem="{Binding SelectedReference, Mode=TwoWay}">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <WrapPanel Orientation="Horizontal">
-                                    <TextBlock TextTrimming="WordEllipsis" Text="{Binding FriendlyName}" />
+                                    <TextBlock TextTrimming="WordEllipsis" Text="{Binding FriendlyName, Mode=OneTime}" />
                                 </WrapPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -58,12 +61,12 @@
                     </StackPanel>
                 </TabItem.Header>
                 <Grid Background="#FFE5E5E5">
-                    <ListBox Name="CommitList" SelectedItem="{Binding SelectedReference, Mode=TwoWay}">
+                    <ListBox Name="CommitList" ItemsSource="{Binding CommitListData, Mode=OneWay}" SelectedItem="{Binding SelectedReference, Mode=TwoWay}">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <WrapPanel Orientation="Horizontal">
-                                    <TextBlock Width="100" Text="{Binding ShortSha}" />
-                                    <TextBlock TextTrimming="WordEllipsis" Text="{Binding ShortMessage}" />
+                                    <TextBlock Width="100" Text="{Binding ShortSha, Mode=OneTime}" />
+                                    <TextBlock TextTrimming="WordEllipsis" Text="{Binding ShortMessage, Mode=OneTime}" />
                                 </WrapPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -78,12 +81,12 @@
                     </StackPanel>
                 </TabItem.Header>
                 <Grid Background="#FFE5E5E5">
-                    <ListBox Name="TagList" SelectedItem="{Binding SelectedReference, Mode=TwoWay}">
+                    <ListBox Name="TagList" ItemsSource="{Binding TagListData, Mode=OneWay}" SelectedItem="{Binding SelectedReference, Mode=TwoWay}">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <WrapPanel Orientation="Horizontal">
-                                    <TextBlock Width="100" Text="{Binding ShortSha}" />
-                                    <TextBlock TextTrimming="WordEllipsis" Text="{Binding FriendlyName}" />
+                                    <TextBlock Width="100" Text="{Binding ShortSha, Mode=OneTime}" />
+                                    <TextBlock TextTrimming="WordEllipsis" Text="{Binding FriendlyName, Mode=OneTime}" />
                                 </WrapPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>

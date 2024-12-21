@@ -10,10 +10,9 @@ namespace GitTreeFilter.Commands
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
+
         public ObservableCollection<GitBranch> BranchListData { get; } = new ObservableCollection<GitBranch>();
-
         public ObservableCollection<GitCommit> CommitListData { get; } = new ObservableCollection<GitCommit>();
-
         public ObservableCollection<GitTag> TagListData { get; } = new ObservableCollection<GitTag>();
 
         public GitReference<GitCommitObject> SelectedReference
@@ -30,7 +29,8 @@ namespace GitTreeFilter.Commands
             }
         }
 
-        public bool PinToMergeHead { 
+        public bool PinToMergeHead
+        {
             get => _pinToMergeHead;
             set
             {
@@ -45,14 +45,32 @@ namespace GitTreeFilter.Commands
             }
         }
 
+        public Visibility MergeHeadCheckBoxVisibility =>
+            SelectedReference is GitBranch || SelectedReference is GitTag
+                ? Visibility.Visible
+                : Visibility.Hidden;
+
+        public bool IsOkEnabled
+        {
+            get => _isEnabled;
+            set {
+                _isEnabled = value;
+                OnPropertyChanged(nameof(IsOkEnabled));
+            }
+        }
+
         public ConfigureReferenceObjectDialog()
         {
             InitializeComponent();
-
             DataContext = this;
-            BranchList.ItemsSource = BranchListData;
-            CommitList.ItemsSource = CommitListData;
-            TagList.ItemsSource = TagListData;
+
+            PropertyChanged += (sender, args) =>
+            {
+                if (args.PropertyName == nameof(SelectedReference))
+                {
+                    IsOkEnabled = SelectedReference != null;
+                }
+            };
         }
 
         private void UpdateControls()
@@ -61,29 +79,23 @@ namespace GitTreeFilter.Commands
             switch (SelectedReference)
             {
                 case GitBranch branch:
-                    OKBtn.IsEnabled = true;
-                    MergeHeadCheckBox.Visibility = Visibility.Visible;
                     Tabs.SelectedItem = BranchesTab;
                     break;
                 case GitCommit commit:
-                    OKBtn.IsEnabled = true;
-                    MergeHeadCheckBox.Visibility = Visibility.Hidden;
                     Tabs.SelectedItem = CommitsTab;
                     break;
                 case GitTag tag:
-                    OKBtn.IsEnabled = true;
-                    MergeHeadCheckBox.Visibility = Visibility.Visible;
                     Tabs.SelectedItem = TagsTab;
                     break;
                 default:
-                    OKBtn.IsEnabled = false;
+                    SelectedReference = null;
                     break;
             }
         }
 
         public void SetDefaultReference(GitReference<GitCommitObject> reference)
         {
-            if(reference == null)
+            if (reference == null)
             {
                 return;
             }
@@ -111,5 +123,6 @@ namespace GitTreeFilter.Commands
 
         private GitReference<GitCommitObject> _selectedReference;
         private bool _pinToMergeHead;
+        private bool _isEnabled;
     }
 }

@@ -23,6 +23,6 @@ namespace GitTreeFilter.Core.Tests.Extensions
         /// </summary>
         /// <param name="gitTag">The tag to dehydrate</param>
         /// <returns>Dehydrated tag described only by the commit SHA and name</returns>
-        public static GitTag Dehydrate(this GitTag gitTag) => new(new GitCommitObject(gitTag.Reference.Sha), gitTag.Reference.Sha);
+        public static GitTag Dehydrate(this GitTag gitTag) => new(new GitCommitObject(gitTag.Reference.Sha), gitTag.Reference.Sha, gitTag.PinToMergeHead);
     }
 }

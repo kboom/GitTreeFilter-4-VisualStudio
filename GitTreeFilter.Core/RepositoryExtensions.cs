@@ -62,7 +62,7 @@ namespace GitTreeFilter.Core
             else
             {
                 var commit = repository.Lookup<Commit>(tag.Target.Id);
-                return new GitTag(commit.ToGitCommitObject(), tag.FriendlyName);
+                return new GitTag(commit.ToGitCommitObject(), tag.FriendlyName, gitTag.PinToMergeHead);
             }
         }
 
@@ -109,7 +109,7 @@ namespace GitTreeFilter.Core
 
         public static GitCommit ToGitCommit(this GitCommitObject x) => new GitCommit(x);
 
-        public static GitTag ToGitTag(this GitCommitObject x, string name) => new GitTag(x, name);
+        public static GitTag ToGitTag(this GitCommitObject x, string name, bool pinToMergeHead = false) => new GitTag(x, name, pinToMergeHead);
 
     }
 }

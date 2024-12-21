@@ -29,9 +29,12 @@ namespace GitTreeFilter.Commands
 
             dialog.SetDefaultReference(_gitFiltersSettingStore.GitReference);
 
-            _ = dialog.ShowModal();
+            bool wasSaved = dialog.ShowModal() ?? true;
 
-            GitFilterService.TargetReference = dialog.SelectedReference;
+            if (wasSaved)
+            {
+                GitFilterService.TargetReference = dialog.SelectedReference;
+            }
         }
 
         private ISolutionRepository SolutionRepository => GitFilterService.SolutionRepository;

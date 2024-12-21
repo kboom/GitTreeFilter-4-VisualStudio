@@ -26,26 +26,29 @@ namespace GitTreeFilter.Core.Models
             return false;
         }
         public sealed override int GetHashCode() => 1138026772 + EqualityComparer<string>.Default.GetHashCode(_sha);
+
+        public override string ToString() => $"{nameof(GitObject)}[{Sha}]";
     }
 
     public sealed class GitCommitObject : GitObject
     {
-        private readonly string _shortMessage;
-
         public GitCommitObject(string sha) : base(sha)
         {
-            IsResolved = false;
+            _isResolved = false;
         }
 
         public GitCommitObject(string sha, string shortMessage) : base(sha)
         {
             _shortMessage = shortMessage;
-            IsResolved = true;
+            _isResolved = true;
         }
 
-        public bool IsResolved { get; private set; }
+        public bool IsResolved => _isResolved;
 
         public string ShortMessage => _shortMessage;
+
+        private readonly string _shortMessage;
+        private readonly bool _isResolved;
     }
 
     public abstract class GitReference<T> where T : GitObject
@@ -65,6 +68,8 @@ namespace GitTreeFilter.Core.Models
 
         public override bool Equals(object obj) => obj is GitReference<T> reference && EqualityComparer<T>.Default.Equals(_gitObject, reference._gitObject);
         public override int GetHashCode() => -848059651 + EqualityComparer<T>.Default.GetHashCode(_gitObject);
+
+        public override string ToString() => $"{GetType().Name}[{Reference}]";
     }
 
     internal static class GitReferenceExtensions
@@ -91,8 +96,10 @@ namespace GitTreeFilter.Core.Models
 
     public class GitBranch : GitReference<GitCommitObject>
     {
-        private readonly string _shortName;
-        private readonly bool _pinToMergeHead;
+        public GitBranch(GitBranch source, bool pinToMergeHead) : this(source.Reference, source._shortName, pinToMergeHead)
+        {
+
+        }
 
         public GitBranch(GitCommitObject target, string shortName, bool pinToMergeHead = false) : base(target)
         {
@@ -113,22 +120,30 @@ namespace GitTreeFilter.Core.Models
         public override string FriendlyName => _shortName;
 
         public override bool PinToMergeHead => _pinToMergeHead;
+
+        private readonly string _shortName;
+        private readonly bool _pinToMergeHead;
     }
 
     public class GitTag : GitReference<GitCommitObject>
     {
-        private readonly string _name;
+        public GitTag(GitTag source, bool pinToMergeHead) : this(source.Reference, source._name, pinToMergeHead)
+        {
+        }
 
-        public GitTag(GitCommitObject target, string name) : base(target)
+        public GitTag(GitCommitObject target, string name, bool pinToMergeHead = false) : base(target)
         {
             _name = name;
+            _pinToMergeHead = pinToMergeHead;
         }
 
         public override string FriendlyName => _name;
 
         public string ShortSha => Reference.Sha.Substring(0, 7);
 
-        // convert to usable setting
-        public override bool PinToMergeHead => false;
+        public override bool PinToMergeHead => _pinToMergeHead;
+
+        private readonly string _name;
+        private readonly bool _pinToMergeHead;
     }
 }
