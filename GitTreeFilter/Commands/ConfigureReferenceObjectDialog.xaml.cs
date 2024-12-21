@@ -10,7 +10,6 @@ namespace GitTreeFilter.Commands
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-
         public ObservableCollection<GitBranch> BranchListData { get; } = new ObservableCollection<GitBranch>();
         public ObservableCollection<GitCommit> CommitListData { get; } = new ObservableCollection<GitCommit>();
         public ObservableCollection<GitTag> TagListData { get; } = new ObservableCollection<GitTag>();
@@ -23,7 +22,7 @@ namespace GitTreeFilter.Commands
                 if (_selectedReference != value)
                 {
                     _selectedReference = value.Clone();
-                    UpdateControls();
+                    UpdateTabSelection();
                     OnPropertyChanged(nameof(SelectedReference));
                 }
             }
@@ -75,6 +74,7 @@ namespace GitTreeFilter.Commands
                 if (args.PropertyName == nameof(SelectedReference))
                 {
                     IsOkEnabled = SelectedReference != null;
+                    UpdateTabSelection();
                 }
             };
 
@@ -85,22 +85,20 @@ namespace GitTreeFilter.Commands
             };
         }
 
-        private void UpdateControls()
+        private void UpdateTabSelection()
         {
-            // this is not showing up selection correctly
             switch (SelectedReference)
             {
-                case GitBranch branch:
+                case GitBranch _:
                     Tabs.SelectedItem = BranchesTab;
                     break;
-                case GitCommit commit:
+                case GitCommit _:
                     Tabs.SelectedItem = CommitsTab;
                     break;
-                case GitTag tag:
+                case GitTag _:
                     Tabs.SelectedItem = TagsTab;
                     break;
                 default:
-                    SelectedReference = null;
                     break;
             }
         }
