@@ -5,6 +5,7 @@ using GitTreeFilter.Core;
 using GitTreeFilter.Core.Models;
 using GitTreeFilter.Tagging;
 using Microsoft;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TeamFoundation.Git.Extensibility;
@@ -128,7 +129,7 @@ namespace GitTreeFilter
             _dte.Events.SolutionEvents.Opened += SetUp;
             _dte.Events.SolutionEvents.BeforeClosing += () =>
             {
-                PluginState = PluginLifecycleState.INACTIVE;
+                PluginState = PluginLifecycleState.LOADING;
                 Solution = new GitSolution(string.Empty);
             };
         }

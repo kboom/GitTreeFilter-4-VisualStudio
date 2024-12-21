@@ -1,13 +1,14 @@
-﻿using System.Collections.ObjectModel;
-using System.Windows;
-using GitTreeFilter.Core.Models;
-using LibGit2Sharp;
+﻿using GitTreeFilter.Core.Models;
 using Microsoft.VisualStudio.PlatformUI;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Windows;
 
 namespace GitTreeFilter.Commands
 {
-    public partial class ConfigureReferenceObjectDialog : DialogWindow
+    public partial class ConfigureReferenceObjectDialog : DialogWindow, INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public ObservableCollection<GitBranch> BranchListData { get; } = new ObservableCollection<GitBranch>();
 
@@ -15,7 +16,34 @@ namespace GitTreeFilter.Commands
 
         public ObservableCollection<GitTag> TagListData { get; } = new ObservableCollection<GitTag>();
 
-        public GitReference<GitCommitObject> SelectedReference { get; set; }
+        public GitReference<GitCommitObject> SelectedReference
+        {
+            get => _selectedReference;
+            set
+            {
+                if (_selectedReference != value)
+                {
+                    _selectedReference = value;
+                    UpdateControls();
+                    OnPropertyChanged(nameof(SelectedReference));
+                }
+            }
+        }
+
+        public bool PinToMergeHead { 
+            get => _pinToMergeHead;
+            set
+            {
+                _pinToMergeHead = value;
+                SelectedReference = SelectedReference switch
+                {
+                    GitBranch branch => new GitBranch(branch, value),
+                    GitTag tag => new GitTag(tag, value),
+                    _ => SelectedReference
+                };
+                OnPropertyChanged(nameof(PinToMergeHead));
+            }
+        }
 
         public ConfigureReferenceObjectDialog()
         {
@@ -27,6 +55,32 @@ namespace GitTreeFilter.Commands
             TagList.ItemsSource = TagListData;
         }
 
+        private void UpdateControls()
+        {
+            // this is not showing up selection correctly
+            switch (SelectedReference)
+            {
+                case GitBranch branch:
+                    OKBtn.IsEnabled = true;
+                    MergeHeadCheckBox.Visibility = Visibility.Visible;
+                    Tabs.SelectedItem = BranchesTab;
+                    break;
+                case GitCommit commit:
+                    OKBtn.IsEnabled = true;
+                    MergeHeadCheckBox.Visibility = Visibility.Hidden;
+                    Tabs.SelectedItem = CommitsTab;
+                    break;
+                case GitTag tag:
+                    OKBtn.IsEnabled = true;
+                    MergeHeadCheckBox.Visibility = Visibility.Visible;
+                    Tabs.SelectedItem = TagsTab;
+                    break;
+                default:
+                    OKBtn.IsEnabled = false;
+                    break;
+            }
+        }
+
         public void SetDefaultReference(GitReference<GitCommitObject> reference)
         {
             if(reference == null)
@@ -35,25 +89,7 @@ namespace GitTreeFilter.Commands
             }
 
             SelectedReference = reference;
-
-            // this is not showing up selection correctly
-            switch (reference)
-            {
-                case GitBranch branch:
-                    Tabs.SelectedItem = BranchesTab;
-                    BranchList.SelectedItem = branch;
-                    return;
-                case GitCommit commit:
-                    Tabs.SelectedItem = CommitsTab;
-                    CommitList.SelectedItem = commit;
-                    return;
-                case GitTag tag:
-                    Tabs.SelectedItem = TagsTab;
-                    TagList.SelectedItem = tag;
-                    return;
-                default:
-                    return;
-            }
+            PinToMergeHead = SelectedReference.PinToMergeHead;
         }
 
         private void OKBtn_Click(object sender, RoutedEventArgs e)
@@ -68,29 +104,12 @@ namespace GitTreeFilter.Commands
             Close();
         }
 
-        // TODO: add checkbox in case of branch to pin to merge head!
-        private void BranchList_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        protected void OnPropertyChanged(string propertyName)
         {
-            if (BranchList.SelectedItem != null)
-            {
-                SelectedReference = BranchList.SelectedItem as GitReference<GitCommitObject>;
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private void CommitList_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-        {
-            if (CommitList.SelectedItem != null)
-            {
-                SelectedReference = CommitList.SelectedItem as GitReference<GitCommitObject>;
-            }
-        }
-
-        private void TagList_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-        {
-            if (TagList.SelectedItem != null)
-            {
-                SelectedReference = TagList.SelectedItem as GitReference<GitCommitObject>;
-            }
-        }
+        private GitReference<GitCommitObject> _selectedReference;
+        private bool _pinToMergeHead;
     }
 }

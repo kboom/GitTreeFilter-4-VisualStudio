@@ -206,7 +206,7 @@ namespace GitTreeFilter.Core
                 }
 
                 var commit = branchObj.Tip;
-                branch = new GitBranch(RepositoryExtensions.ToGitCommitObject(commit), branchName, branch.PinToMergeHead);
+                branch = new GitBranch(RepositoryExtensions.ToGitCommitObject(commit), branchName);
                 return true;
             }
         }
