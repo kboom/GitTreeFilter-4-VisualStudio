@@ -22,14 +22,9 @@ public interface IGitFilterSettingStore
     void OnGitFilterChanged(object sender, NotifyGitFilterChangedEventArgs e);
 }
 
-public class GitFilterSettingStore : IGitFilterSettingStore
+internal class GitFilterSettingStore : IGitFilterSettingStore
 {
-    private readonly WritableSettingsStore _userSettingsStore;
-    private readonly Func<GitSolution> _solution;
-
-    private string SettingStoreVault => $"{nameof(GitFilterSettingStore)}{_solution().SolutionPath}";
-
-    public GitFilterSettingStore(WritableSettingsStore userSettingsStore, Func<GitSolution> solution)
+    internal GitFilterSettingStore(WritableSettingsStore userSettingsStore, Func<GitSolution> solution)
     {
         _userSettingsStore = userSettingsStore;
         _solution = solution;
@@ -123,10 +118,12 @@ public class GitFilterSettingStore : IGitFilterSettingStore
         }
     }
 
-    private void CleanValues()
-    {
-        _userSettingsStore.DeleteCollection(SettingStoreVault);
-    }
+    private void CleanValues() => _userSettingsStore.DeleteCollection(SettingStoreVault);
+
+    private string SettingStoreVault => $"{nameof(GitFilterSettingStore)}{_solution().SolutionPath}";
+
+    private readonly WritableSettingsStore _userSettingsStore;
+    private readonly Func<GitSolution> _solution;
 }
 
 internal class UserSettingsStoreOptions

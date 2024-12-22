@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace GitTreeFilter.Tagging
+namespace GitTreeFilter.Tagging;
+
+interface IItemTable<TKey, TValue> : IDisposable
 {
-    internal interface IItemTable<TKey, TValue> : IDisposable
-    {
-        void Insert(TKey item, TValue value);
+    void Insert(TKey item, TValue value);
 
-        TValue Select(TKey item);
-    }
+    TValue Select(TKey item);
 }

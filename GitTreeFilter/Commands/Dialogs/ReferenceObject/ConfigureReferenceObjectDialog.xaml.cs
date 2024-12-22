@@ -128,7 +128,6 @@ public partial class ConfigureReferenceObjectDialog : DialogWindow, INotifyPrope
     }
 
     private GitReference<GitCommitObject> _selectedReference;
-    private bool _pinToMergeHead;
     private bool _isEnabled;
     private Visibility _mergeHeadCheckBoxVisibility;
     private SessionSettings _sessionSettings = SessionSettings.Default;
