@@ -16,7 +16,8 @@
     <RootNamespace>GitTreeFilter</RootNamespace>
     <AssemblyName>GitTreeFilter</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>11</LangVersion>
+    <AnalysisLevel>11</AnalysisLevel>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <UseCodebase>true</UseCodebase>
     <TargetVsixContainerName>GitTreeFilter.vsix</TargetVsixContainerName>
@@ -59,11 +60,14 @@
     <Compile Include="Commands\OpenDiffCommandManager.cs" />
     <Compile Include="Commands\OpenPhysicalFileDiffCommand.cs" />
     <Compile Include="Commands\OpenProjectFileDiffCommand.cs" />
+    <Compile Include="LiveReloadingComparisonConfig.cs" />
     <Compile Include="ErrorPresenter.cs" />
     <Compile Include="GitFilterSettingStore.cs" />
     <Compile Include="GitTreeFilterService.cs" />
     <Compile Include="GitTreeFilterProvider.cs" />
-    <Compile Include="GitTreeFilterConfiguration.cs" />
+    <Compile Include="GitTreeFilterConfiguration.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="GitTreeFilterPackageGuids.cs" />
     <Compile Include="Models\ISolutionSelection.cs" />
     <Compile Include="Models\SelectedProject.cs" />

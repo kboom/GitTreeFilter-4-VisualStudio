@@ -1,7 +1,7 @@
-﻿using System;
-using System.Linq;
-using GitTreeFilter.Core.Models;
+﻿using GitTreeFilter.Core.Models;
 using LibGit2Sharp;
+using System;
+using System.Linq;
 
 namespace GitTreeFilter.Core
 {
@@ -10,7 +10,11 @@ namespace GitTreeFilter.Core
         public static Commit GetTargetCommit(this IRepository repository, GitReference<GitCommitObject> target) =>
             repository.Lookup<Commit>(new ObjectId(target.Reference.Sha));
 
-        public static bool TryHydrate(this IRepository repository, GitReference<GitCommitObject> target, out GitReference<GitCommitObject> hydratedReference, IComparisonConfig comparisonConfig)
+        public static bool TryHydrate(
+            this IRepository repository,
+            GitReference<GitCommitObject> target,
+            out GitReference<GitCommitObject> hydratedReference,
+            IComparisonConfig comparisonConfig)
         {
             hydratedReference = null;
             switch (target)
@@ -62,7 +66,7 @@ namespace GitTreeFilter.Core
             else
             {
                 var commit = repository.Lookup<Commit>(tag.Target.Id);
-                return new GitTag(commit.ToGitCommitObject(), tag.FriendlyName, gitTag.PinToMergeHead);
+                return new GitTag(commit.ToGitCommitObject(), tag.FriendlyName);
             }
         }
 
@@ -79,7 +83,7 @@ namespace GitTreeFilter.Core
                 var branch = !string.IsNullOrEmpty(gitBranch.FriendlyName) ? repository.Branches[gitBranch.FriendlyName] : null;
 
                 Commit commitToUse = branch.Tip;
-                if (gitBranch.PinToMergeHead)
+                if (config.PinToMergeHead)
                 {
                     // This will work, but the question is whether or not to do this globally through some sort of a checkbox - "find merge head"
                     // It makes little sense for the "commits" tab though, but only for "branches" and "tags" which are not generally selecting individual commits but just references.
@@ -93,7 +97,7 @@ namespace GitTreeFilter.Core
                     }
                 }
 
-                return new GitBranch(commitToUse.ToGitCommitObject(), branch.FriendlyName, gitBranch.PinToMergeHead);
+                return new GitBranch(commitToUse.ToGitCommitObject(), branch.FriendlyName);
             } catch
             {
                 // Branch removed, fall back to commit
@@ -109,7 +113,7 @@ namespace GitTreeFilter.Core
 
         public static GitCommit ToGitCommit(this GitCommitObject x) => new GitCommit(x);
 
-        public static GitTag ToGitTag(this GitCommitObject x, string name, bool pinToMergeHead = false) => new GitTag(x, name, pinToMergeHead);
+        public static GitTag ToGitTag(this GitCommitObject x, string name) => new GitTag(x, name);
 
     }
 }

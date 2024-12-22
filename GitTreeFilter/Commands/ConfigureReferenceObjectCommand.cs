@@ -1,8 +1,9 @@
-﻿using System;
-using System.Threading.Tasks;
-using GitTreeFilter.Core;
+﻿using GitTreeFilter.Core;
+using GitTreeFilter.Core.Models;
 using Microsoft;
 using Microsoft.VisualStudio.Shell;
+using System;
+using System.Threading.Tasks;
 
 namespace GitTreeFilter.Commands
 {
@@ -34,13 +35,15 @@ namespace GitTreeFilter.Commands
             LoadCommits(dialog);
             LoadTags(dialog);
 
-            dialog.SetDefaultReference(_gitFiltersSettingStore.GitReference);
+            dialog.SelectedReference = _gitFiltersSettingStore.ReferenceObject;
+            dialog.SessionSettings = SessionSettings.CreateFrom(_gitFiltersSettingStore.SessionSettings);
 
             bool wasSaved = dialog.ShowModal() ?? true;
 
             if (wasSaved)
             {
                 GitFilterService.TargetReference = dialog.SelectedReference;
+                GitFilterService.SessionSettings = dialog.SessionSettings;
             }
         }
 

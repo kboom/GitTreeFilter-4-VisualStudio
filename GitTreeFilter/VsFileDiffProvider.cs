@@ -62,7 +62,7 @@ namespace GitTreeFilter
             Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
             var filename = System.IO.Path.GetFileName(_documentPath);
 
-            var reference = _solutionRepository.GitReference;
+            var reference = _solutionRepository.ComparisonConfig.ReferenceObject;
             var leftLabel = $"{filename}@{reference.FriendlyName}";
             var rightLabel = $"{filename}@Working Tree";
             var caption = $"{System.IO.Path.GetFileName(rightFileMoniker)} <{reference.FriendlyName}>";

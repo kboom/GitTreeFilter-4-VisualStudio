@@ -1,30 +1,19 @@
-﻿using System.ComponentModel;
-using GitTreeFilter.Core;
-using Microsoft.VisualStudio.Shell;
+﻿using Microsoft.VisualStudio.Shell;
+using System.ComponentModel;
 
 namespace BranchDiffer.VS.Shared
 {
-    public interface IGitFiltersConfiguration {
+    /// <summary>
+    /// Global configuration for the Git Tree Filter plugin.
+    /// Managed from within the Visual Studio settings pages.
+    /// </summary>
+    public interface IGlobalSettings {
         string DefaultBranch { get; }
 
         bool OriginRefsOnly { get; }
     }
 
-    public static class GitFiltersConfigurationExt
-    {
-        public static IComparisonConfig ToComparisonConfig(this IGitFiltersConfiguration globalConfig) => new ConfigurationComparisonConfig(globalConfig);
-    }
-
-    class ConfigurationComparisonConfig : IComparisonConfig
-    {
-        private readonly IGitFiltersConfiguration _config;
-
-        public ConfigurationComparisonConfig(IGitFiltersConfiguration globalConfig) => _config = globalConfig;
-
-        public bool OriginRefsOnly => _config.OriginRefsOnly;
-    }
-
-    public class GitFiltersConfiguration : DialogPage, IGitFiltersConfiguration
+    public class GlobalSettings : DialogPage, IGlobalSettings
     {
         private const string c_category = "Git Tree Filter";
 

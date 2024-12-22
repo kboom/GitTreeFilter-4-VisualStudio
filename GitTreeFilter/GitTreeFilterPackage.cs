@@ -15,7 +15,7 @@ namespace GitTreeFilter
     {
         IGitFilterService Service { get; }
 
-        IGitFiltersConfiguration Configuration { get; }
+        IGlobalSettings Configuration { get; }
 
         IGitFilterSettingStore SettingsStore { get; }
 
@@ -29,24 +29,24 @@ namespace GitTreeFilter
     [ProvideService((typeof(SGitFilterService)), IsAsyncQueryable = true)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_string, PackageAutoLoadFlags.BackgroundLoad)]
-    [ProvideOptionPage(typeof(GitFiltersConfiguration), "Git Tree Filters", "Git Tree Filters Options", 0, 0, true)]
+    [ProvideOptionPage(typeof(GlobalSettings), "Git Tree Filters", "Git Tree Filters Options", 0, 0, true)]
     public sealed class GitFiltersPackage : AsyncPackage, IGitFiltersPackage
     {
         public IGitFilterService Service { get; private set; }
 
-        public IGitFiltersConfiguration Configuration { get; private set; }
+        public IGlobalSettings Configuration { get; private set; }
 
         public IGitFilterSettingStore SettingsStore { get; private set; }
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await base.InitializeAsync(cancellationToken, progress);
-            Configuration = (GitFiltersConfiguration)GetDialogPage(typeof(GitFiltersConfiguration));
+            Configuration = (GlobalSettings)GetDialogPage(typeof(GlobalSettings));
             SettingsStore = await GitFilterSettingStore.CreateSettingStoreAsync(this);
             AddService(typeof(SGitFilterService), CreateGitFilterServiceAsync, true);
         }
 
-        private void WireComponents() => Service.GitFilterChanged += SettingsStore.GitReferenceChanged;
+        private void WireComponents() => Service.GitFilterChanged += SettingsStore.OnGitFilterChanged;
 
         public async Task<T> GetServiceAsync<T>() => (T)await GetServiceAsync(typeof(T));
 

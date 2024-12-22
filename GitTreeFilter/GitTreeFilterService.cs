@@ -5,7 +5,6 @@ using GitTreeFilter.Core;
 using GitTreeFilter.Core.Models;
 using GitTreeFilter.Tagging;
 using Microsoft;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TeamFoundation.Git.Extensibility;
@@ -24,7 +23,8 @@ namespace GitTreeFilter
     {
         PluginLifecycleState PluginState { get; }
         GitReference<GitCommitObject> TargetReference { get; set; }
-        IGitFiltersConfiguration Options { get; set; }
+        IGlobalSettings GlobalSettings { get; set; }
+        ISessionSettings SessionSettings { get; set; }
         GitSolution Solution { get; set; }
         ISolutionRepository SolutionRepository { get; }
         IItemTagManager ItemTagManager { get; set; }
@@ -42,9 +42,17 @@ namespace GitTreeFilter
 
     public class NotifyGitFilterChangedEventArgs : EventArgs
     {
-        public NotifyGitFilterChangedEventArgs(GitReference<GitCommitObject> targetReference) => TargetReference = targetReference;
+        public NotifyGitFilterChangedEventArgs(
+            GitReference<GitCommitObject> targetReference,
+            ISessionSettings sessionSettings)
+        {
+            TargetReference = targetReference;
+            SessionSettings = sessionSettings;
+        }
 
         public GitReference<GitCommitObject> TargetReference { get; }
+
+        public ISessionSettings SessionSettings { get; }
     }
 
     public enum PluginLifecycleState
@@ -63,16 +71,12 @@ namespace GitTreeFilter
 
     public class GitFilterService : SGitFilterService, IGitFilterService
     {
-        private readonly IGitFiltersPackage _package;
-        private ISolutionRepository _solutionRepository;
-        private DTE _dte;
-        private IGitExt _gitExt;
-        private GitReference<GitCommitObject> _targetReference;
-
         public GitFilterService(GitFiltersPackage gitFiltersPackage)
         {
             Assumes.NotNull(gitFiltersPackage);
             _package = gitFiltersPackage;
+
+            GitFilterChanged += InvalidateResources;
         }
 
         public GitReference<GitCommitObject> TargetReference
@@ -83,19 +87,25 @@ namespace GitTreeFilter
                 if (!Equals(_targetReference, value))
                 {
                     _ = _solutionRepository.TryHydrate(value, out _targetReference);
-                    _solutionRepository.GitReference = _targetReference;
-                    GitFilterChanged?.Invoke(this, new NotifyGitFilterChangedEventArgs(_targetReference));
+                    GitFilterChanged?.Invoke(this, new NotifyGitFilterChangedEventArgs(_targetReference, default));
                 }
             }
         }
 
-        public PluginLifecycleState PluginState { get; private set; } = PluginLifecycleState.LOADING;
+        public ISessionSettings SessionSettings
+        {
+            get => _sessionSettings;
+            set
+            {
+                Assumes.NotNull(value);
+                if (!Equals(_sessionSettings, value))
+                {
+                    _sessionSettings = value;
+                    GitFilterChanged?.Invoke(this, new NotifyGitFilterChangedEventArgs(default, _sessionSettings));
+                }
+            }
+        }
 
-        public IGitFiltersConfiguration Options { get; set; }
-        public GitSolution Solution { get; set; }
-        public IItemTagManager ItemTagManager { get; set; }
-
-        private bool _isFilterApplied = false;
         public bool IsFilterApplied
         {
             get => _isFilterApplied;
@@ -105,6 +115,14 @@ namespace GitTreeFilter
                 GitFilterLifecycleEvent?.Raise(this, new NotifyGitFilterLifecycleEventArgs());
             }
         }
+
+        public PluginLifecycleState PluginState { get; private set; } = PluginLifecycleState.LOADING;
+
+        public IGlobalSettings GlobalSettings { get; set; }
+
+        public GitSolution Solution { get; set; }
+
+        public IItemTagManager ItemTagManager { get; set; }
 
         public MessagePresenter ErrorPresenter { get; } = new MessagePresenter();
 
@@ -151,12 +169,19 @@ namespace GitTreeFilter
             var gitSolution = new GitSolution(repositoryRootPath);
 
             Solution = gitSolution;
-            Options = _package.Configuration;
+            GlobalSettings = _package.Configuration;
             ItemTagManager = new ItemTagManager();
 
-            _solutionRepository = SolutionRepositoryFactory.CreateSolutionRepository(Solution, Options.ToComparisonConfig());
+            LiveReloadingComparisonConfig comparisonConfig = new(
+                () => GlobalSettings,
+                () => SessionSettings,
+                () => TargetReference
+            );
 
-            ReadDefaults();
+            _solutionRepository = SolutionRepositoryFactory.CreateSolutionRepository(Solution, comparisonConfig);
+
+            LoadTargetGitReference();
+            ItemTagManager.CreateTagTables();
 
             await CommandRegistrar.InitializeAsync(_package);
 
@@ -211,17 +236,11 @@ namespace GitTreeFilter
             }
         }
 
-        private void ReadDefaults()
-        {
-            LoadTargetGitReference();
-            ItemTagManager.CreateTagTables();
-        }
-
         private void LoadTargetGitReference()
         {
             if (TargetReference == null)
             {
-                var storedGitReference = _package.SettingsStore.GitReference;
+                var storedGitReference = _package.SettingsStore.ReferenceObject;
                 if (storedGitReference != null)
                 {
                     if (_solutionRepository.TryHydrate(storedGitReference, out var reference))
@@ -230,13 +249,17 @@ namespace GitTreeFilter
                     }
                 }
                 if (TargetReference == null && _solutionRepository.TryGetGitBranchByName(
-                    Options.DefaultBranch,
+                    GlobalSettings.DefaultBranch,
                     out var branch))
                 {
                     TargetReference = branch;
                 }
             }
-            _solutionRepository.GitReference = TargetReference;
+        }
+
+        private void InvalidateResources(object sender, NotifyGitFilterChangedEventArgs args)
+        {
+            ItemTagManager?.Reset();
         }
 
         private async Task FailWithMessageBoxAsync()
@@ -258,5 +281,13 @@ namespace GitTreeFilter
                 0,
                 out _);
         }
+
+        private readonly IGitFiltersPackage _package;
+        private ISolutionRepository _solutionRepository;
+        private DTE _dte;
+        private IGitExt _gitExt;
+        private GitReference<GitCommitObject> _targetReference;
+        private ISessionSettings _sessionSettings;
+        private bool _isFilterApplied = false;
     }
 }

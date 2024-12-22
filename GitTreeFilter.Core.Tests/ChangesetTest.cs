@@ -1,12 +1,12 @@
-﻿using System.Collections.Immutable;
-using System.Linq;
-using FluentAssertions;
+﻿using FluentAssertions;
 using FluentAssertions.Execution;
 using GitTreeFilter.Core.Exceptions;
 using GitTreeFilter.Core.Models;
 using GitTreeFilter.Core.Tests.DataSource;
 using GitTreeFilter.Core.Tests.Repositories;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Immutable;
+using System.Linq;
 
 namespace GitTreeFilter.Core.Tests
 {
@@ -19,7 +19,7 @@ namespace GitTreeFilter.Core.Tests
         {
             // given
             var solutionRepository = CreateSolutionRepository(TestRepositories.First);
-            solutionRepository.GitReference = null;
+            ReferenceObject = null;
 
             // when & then
             solutionRepository.Invoking(x => x.Changeset)
@@ -34,7 +34,7 @@ namespace GitTreeFilter.Core.Tests
             // given
             var solutionRepository = CreateSolutionRepository(TestRepositories.First);
             const string missingSha = "9eabf5b536662000f79978c4d1b6e4eff5c8d785";
-            solutionRepository.GitReference = new GitCommit(new GitCommitObject(missingSha, "any description"));
+            ReferenceObject = new GitCommit(new GitCommitObject(missingSha, "any description"));
 
             // when & then
             solutionRepository.Invoking(x => x.Changeset)
@@ -49,7 +49,7 @@ namespace GitTreeFilter.Core.Tests
         {
             // given
             var solutionRepository = CreateSolutionRepository(testRepository);
-            solutionRepository.GitReference = testRepository.Head;
+            ReferenceObject = testRepository.Head;
 
             // when
             var changeset = solutionRepository.Changeset;
@@ -68,7 +68,7 @@ namespace GitTreeFilter.Core.Tests
         {
             // given
             var solutionRepository = CreateSolutionRepository(testRepository);
-            solutionRepository.GitReference = gitReference;
+            ReferenceObject = gitReference;
 
             // when
             var changeset = solutionRepository.Changeset;

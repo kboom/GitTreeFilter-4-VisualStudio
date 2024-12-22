@@ -6,7 +6,6 @@ public class GitBranchFaker
 {
     private string Sha { get; set; } = FakeHelpers.GenerateRandomSha();
     private string ShortName { get; set; } = FakeHelpers.GenerateRandomName();
-    private bool PinToMergeHead { get; set; }
 
     public GitBranchFaker()
     {
@@ -16,7 +15,6 @@ public class GitBranchFaker
     {
         Sha = gitBranchFaker.Sha;
         ShortName = gitBranchFaker.ShortName;
-        PinToMergeHead = gitBranchFaker.PinToMergeHead;
     }
 
     public GitBranchFaker WithRandomSha()
@@ -35,17 +33,9 @@ public class GitBranchFaker
         };
     }
 
-    public GitBranchFaker WithPinToMergeHead(bool pinToMergeHead)
-    {
-        return new GitBranchFaker(this)
-        {
-            PinToMergeHead = pinToMergeHead
-        };
-    }
-
     public GitBranch Create()
     {
         var gitCommitObject = new GitCommitObject(Sha);
-        return new GitBranch(gitCommitObject, ShortName, PinToMergeHead);
+        return new GitBranch(gitCommitObject, ShortName);
     }
 }

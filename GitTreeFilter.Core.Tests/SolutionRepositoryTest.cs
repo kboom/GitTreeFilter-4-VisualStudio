@@ -1,21 +1,21 @@
+using GitTreeFilter.Core.Models;
 using GitTreeFilter.Core.Tests.Repositories;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace GitTreeFilter.Core.Tests
 {
     [TestClass]
-    public abstract class SolutionRepositoryTest
+    public abstract class SolutionRepositoryTest : IComparisonConfig
     {
-        public TestComparisonConfig ComparisonConfig = new();
-
         protected ISolutionRepository CreateSolutionRepository(ITestRepository testRepository)
         {
-            return SolutionRepositoryFactory.CreateSolutionRepository(testRepository.Solution, ComparisonConfig);
+            return SolutionRepositoryFactory.CreateSolutionRepository(testRepository.Solution, this);
         }
-    }
 
-    public class TestComparisonConfig : IComparisonConfig
-    {
-        public bool OriginRefsOnly => false;
+        public GitReference<GitCommitObject> ReferenceObject { get; set; }
+
+        public bool OriginRefsOnly { get; set; }
+
+        public bool PinToMergeHead { get; set; }
     }
 }

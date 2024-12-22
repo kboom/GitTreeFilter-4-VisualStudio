@@ -14,7 +14,7 @@
              DataContext="{Binding RelativeSource={RelativeSource Self}}">
 
     <Grid>
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="20,0,0,10">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="20,0,0,12">
             <CheckBox x:Name="MergeHeadCheckBox"
                       Content="Only my changes"
                       Visibility="{Binding MergeHeadCheckBoxVisibility, Mode=OneWay}"

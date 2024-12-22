@@ -13,6 +13,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -67,7 +68,6 @@ namespace GitTreeFilter.Filters
 
             private GitFiltersObservableSet ItemSet { get; set; }
 
-            // doesn't get called...? added self load in package?
             private void BranchDiffFilter_Initialized(object sender, EventArgs e)
             {
                 _gitFiltersService.GitFilterChanged += OnFilterChangedHandler;
@@ -92,6 +92,12 @@ namespace GitTreeFilter.Filters
                     root.HierarchyIdentity.NestedHierarchy,
                     CancellationToken
                 );
+
+                if (SolutionRepository is null)
+                {
+                    // We are called before initialization. Return all items.
+                    return sourceItems;
+                }
 
                 ItemSet = await GitFiltersObservableSet.CreateGitFiltersObservableSetAsync(
                     SolutionRepository,
@@ -155,6 +161,7 @@ namespace GitTreeFilter.Filters
                 public async Task<bool> InvalidateAsync(CancellationToken cancellationToken)
                 {
                     await TaskScheduler.Default;
+
                     if (!TryCreateChangeset(out var changeset))
                     {
                         // Displaying no items is better than displaying all as it would suggest filter doesn't work

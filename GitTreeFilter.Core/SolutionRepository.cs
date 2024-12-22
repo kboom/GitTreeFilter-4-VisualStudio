@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using GitTreeFilter.Core.Exceptions;
+﻿using GitTreeFilter.Core.Exceptions;
 using GitTreeFilter.Core.Models;
 using LibGit2Sharp;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace GitTreeFilter.Core
 {
@@ -40,11 +40,6 @@ namespace GitTreeFilter.Core
         /// <param name="item"></param>
         /// <returns></returns>
         bool TryReadItem(string path, out GitItem item);
-
-        /// <summary>
-        /// The reference that this repository will use for comparison functions like <see cref="Changeset"/>.
-        /// </summary>
-        GitReference<GitCommitObject> GitReference { get; set; }
 
         /// <summary>
         /// Gets the <paramref name="number"/> of commits which are reachable from current repository HEAD,
@@ -86,8 +81,6 @@ namespace GitTreeFilter.Core
 
         public IComparisonConfig ComparisonConfig { get; }
 
-        public GitReference<GitCommitObject> GitReference { get; set; }
-
         private readonly GitRepositoryFactory _repositoryFactory;
 
         public IEnumerable<GitBranch> Branches
@@ -98,7 +91,7 @@ namespace GitTreeFilter.Core
                 {
                     return repository.Branches
                         .Where(p => !ComparisonConfig.OriginRefsOnly || p.IsRemote)
-                        .Select(x => new GitBranch(x.Tip.ToGitCommitObject(), x.FriendlyName, true)) // flip to false and add a checkbox to control this
+                        .Select(x => new GitBranch(x.Tip.ToGitCommitObject(), x.FriendlyName))
                         .ToList();
                 }
             }
@@ -110,7 +103,7 @@ namespace GitTreeFilter.Core
             {
                 using (var repository = _repositoryFactory.Create(GitSolution))
                 {
-                    AssertValidReference(repository, GitReference);
+                    AssertValidReference(repository, ComparisonConfig.ReferenceObject);
                     var changeset = CollectTreeChanges(repository);
 
                     // this works, but is quite slow
@@ -222,7 +215,7 @@ namespace GitTreeFilter.Core
                     IncludeUnmodified = false,
                 };
 
-                var targetCommit = RepositoryExtensions.GetTargetCommit(repository, GitReference);
+                var targetCommit = RepositoryExtensions.GetTargetCommit(repository, ComparisonConfig.ReferenceObject);
 
                 var branchDiffResult = repository.Diff.Compare<TreeChanges>(
                    targetCommit.Tree,
@@ -287,7 +280,7 @@ namespace GitTreeFilter.Core
             return new GitItem(
                 GitSolution,
                     _repositoryFactory,
-                    GitReference,
+                    ComparisonConfig.ReferenceObject,
                     absoluteFilePath,
                     oldAbsoluteFilePath
             );
@@ -347,7 +340,7 @@ namespace GitTreeFilter.Core
                 IncludeUnmodified = false,
             };
 
-            var targetCommit = RepositoryExtensions.GetTargetCommit(repository, GitReference);
+            var targetCommit = RepositoryExtensions.GetTargetCommit(repository, ComparisonConfig.ReferenceObject);
 
             var branchDiffResult = repository.Diff.Compare<TreeChanges>(
                targetCommit.Tree,
