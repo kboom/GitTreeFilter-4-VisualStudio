@@ -1,4 +1,5 @@
 ﻿using GitTreeFilter.Core.Models;
+using System;
 
 namespace GitTreeFilter.Core.Tests.Test.Fakes;
 
@@ -37,5 +38,13 @@ public class GitCommitFaker
     {
         var gitCommitObject = new GitCommitObject(Sha, ShortMessage);
         return new GitCommit(gitCommitObject);
+    }
+
+    internal GitCommitFaker WithSha(string sha)
+    {
+        return new GitCommitFaker(this)
+        {
+            Sha = sha
+        };
     }
 }

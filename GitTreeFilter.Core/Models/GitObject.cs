@@ -67,8 +67,17 @@ namespace GitTreeFilter.Core.Models
         public abstract GitReference<GitCommitObject> Clone();
 
         public override bool Equals(object obj)
-            => obj is GitReference<T> reference
-                && EqualityComparer<T>.Default.Equals(_gitObject, reference._gitObject);
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+
+            bool typesEqual = GetType().Equals(obj.GetType());
+            bool shaEquality = obj is GitReference<T> otherGitReference && EqualityComparer<T>.Default.Equals(_gitObject, otherGitReference._gitObject);
+
+            return typesEqual && shaEquality;
+        }
 
         public override int GetHashCode() => _gitObject.GetHashCode();
 

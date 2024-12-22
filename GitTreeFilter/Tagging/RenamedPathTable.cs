@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace GitTreeFilter.Tagging
@@ -17,18 +15,19 @@ namespace GitTreeFilter.Tagging
 
         public string Select(TKey key)
         {
-            this.conditionalWeakTable.TryGetValue(key, out string value);
+            conditionalWeakTable.TryGetValue(key, out string value);
             return value;
         }
 
         public void Insert(TKey key, string value)
         {
-            this.conditionalWeakTable.Add(key, value);
+            conditionalWeakTable.Remove(key);
+            conditionalWeakTable.Add(key, value);
         }
 
         public void Dispose()
         {
-            this.conditionalWeakTable = null;
+            conditionalWeakTable = null;
             GC.Collect();
         }
     }

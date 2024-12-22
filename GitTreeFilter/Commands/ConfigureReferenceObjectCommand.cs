@@ -42,7 +42,7 @@ namespace GitTreeFilter.Commands
 
             if (wasSaved)
             {
-                GitFilterService.TargetReference = dialog.SelectedReference;
+                GitFilterService.ReferenceObject = dialog.SelectedReference;
                 GitFilterService.SessionSettings = dialog.SessionSettings;
             }
         }

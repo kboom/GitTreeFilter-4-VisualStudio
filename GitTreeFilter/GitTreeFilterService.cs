@@ -22,7 +22,7 @@ namespace GitTreeFilter
     public interface IGitFilterService
     {
         PluginLifecycleState PluginState { get; }
-        GitReference<GitCommitObject> TargetReference { get; set; }
+        GitReference<GitCommitObject> ReferenceObject { get; set; }
         IGlobalSettings GlobalSettings { get; set; }
         ISessionSettings SessionSettings { get; set; }
         GitSolution Solution { get; set; }
@@ -79,15 +79,16 @@ namespace GitTreeFilter
             GitFilterChanged += InvalidateResources;
         }
 
-        public GitReference<GitCommitObject> TargetReference
+        public GitReference<GitCommitObject> ReferenceObject
         {
-            get => _targetReference;
+            get => _referenceObject;
             set
             {
-                if (!Equals(_targetReference, value))
+                Assumes.NotNull(value);
+                if (_solutionRepository.TryHydrate(value, out var newReference) && !Equals(_referenceObject, newReference))
                 {
-                    _ = _solutionRepository.TryHydrate(value, out _targetReference);
-                    GitFilterChanged?.Invoke(this, new NotifyGitFilterChangedEventArgs(_targetReference, default));
+                    _referenceObject = newReference;
+                    GitFilterChanged?.Invoke(this, new NotifyGitFilterChangedEventArgs(_referenceObject, default));
                 }
             }
         }
@@ -175,12 +176,13 @@ namespace GitTreeFilter
             LiveReloadingComparisonConfig comparisonConfig = new(
                 () => GlobalSettings,
                 () => SessionSettings,
-                () => TargetReference
+                () => ReferenceObject
             );
 
             _solutionRepository = SolutionRepositoryFactory.CreateSolutionRepository(Solution, comparisonConfig);
 
             LoadTargetGitReference();
+            LoadSessionSettings();
             ItemTagManager.CreateTagTables();
 
             await CommandRegistrar.InitializeAsync(_package);
@@ -238,22 +240,30 @@ namespace GitTreeFilter
 
         private void LoadTargetGitReference()
         {
-            if (TargetReference == null)
+            if (ReferenceObject == null)
             {
                 var storedGitReference = _package.SettingsStore.ReferenceObject;
                 if (storedGitReference != null)
                 {
                     if (_solutionRepository.TryHydrate(storedGitReference, out var reference))
                     {
-                        TargetReference = reference;
+                        _referenceObject = reference;
                     }
                 }
-                if (TargetReference == null && _solutionRepository.TryGetGitBranchByName(
+                if (ReferenceObject == null && _solutionRepository.TryGetGitBranchByName(
                     GlobalSettings.DefaultBranch,
                     out var branch))
                 {
-                    TargetReference = branch;
+                    _referenceObject = branch;
                 }
+            }
+        }
+
+        private void LoadSessionSettings()
+        {
+            if (SessionSettings == null)
+            {
+                _sessionSettings = _package.SettingsStore.SessionSettings;
             }
         }
 
@@ -286,7 +296,7 @@ namespace GitTreeFilter
         private ISolutionRepository _solutionRepository;
         private DTE _dte;
         private IGitExt _gitExt;
-        private GitReference<GitCommitObject> _targetReference;
+        private GitReference<GitCommitObject> _referenceObject;
         private ISessionSettings _sessionSettings;
         private bool _isFilterApplied = false;
     }

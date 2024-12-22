@@ -115,6 +115,68 @@ public class GitObjectTests
     }
 
     [TestMethod]
+    public void GitObject_NotEqualToOtherTypesDespiteCommonSHA()
+    {
+        GitObject gitObject = Fakes.GitObject
+            .WithRandomSha()
+            .Create();
+
+        GitBranch branch = Fakes.GitBranch.WithSha(gitObject.Sha).Create();
+        GitTag tag = Fakes.GitTag.WithSha(gitObject.Sha).Create();
+
+        using (new AssertionScope())
+        {
+            gitObject.Should().NotBe(branch);
+            gitObject.Should().NotBe(tag);
+        }
+    }
+
+    [TestMethod]
+    public void GitCommit_NotEqualToOtherTypesDespiteCommonSHA()
+    {
+        GitCommit commit = Fakes.GitCommit.WithRandomSha().Create();
+
+        GitBranch branch = Fakes.GitBranch.WithSha(commit.Reference.Sha).Create();
+        GitTag tag = Fakes.GitTag.WithSha(branch.Reference.Sha).Create();
+
+        using (new AssertionScope())
+        {
+            commit.Should().NotBe(branch);
+            commit.Should().NotBe(tag);
+        }
+    }
+
+    [TestMethod]
+    public void GitBranch_NotEqualToOtherTypesDespiteCommonSHA()
+    {
+        GitBranch branch = Fakes.GitBranch.WithRandomSha().Create();
+
+        GitCommit commit = Fakes.GitCommit.WithSha(branch.Reference.Sha).Create();
+        GitTag tag = Fakes.GitTag.WithSha(branch.Reference.Sha).Create();
+
+        using (new AssertionScope())
+        {
+            branch.Should().NotBe(tag);
+            branch.Should().NotBe(commit);
+        }
+    }
+
+    [TestMethod]
+    public void GitTag_NotEqualToOtherTypesDespiteCommonSHA()
+    {
+        GitTag tag = Fakes.GitTag.WithRandomSha().Create();
+
+        GitBranch branch = Fakes.GitBranch.WithSha(tag.Reference.Sha).Create();
+        GitCommit commit = Fakes.GitCommit.WithSha(tag.Reference.Sha).Create();
+
+        using (new AssertionScope())
+        {
+            tag.Should().NotBe(branch);
+            tag.Should().NotBe(commit);
+        }
+    }
+
+    [TestMethod]
     public void GitObject_Hashcode()
     {
         GitObjectFaker gitObjectFaker = Fakes.GitObject.WithRandomSha();
