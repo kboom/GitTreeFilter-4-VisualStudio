@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using GitTreeFilter.Core.Tests.Repositories;
+using GitTreeFilter.Core.Tests.Test;
 
 namespace GitTreeFilter.Core.Tests.DataSource
 {
@@ -10,8 +11,11 @@ namespace GitTreeFilter.Core.Tests.DataSource
         {
             new()
             {
+                ComparisonConfig = new TestComparisonConfig()
+                {
+                    ReferenceObject = TestRepositories.First.HeadCommits.Last()
+                },
                 Repository = TestRepositories.First,
-                Reference = TestRepositories.First.HeadCommits.Last(),
                 FilesInChangeset = new string[]
                 {
                     "Class1.cs",
@@ -22,8 +26,11 @@ namespace GitTreeFilter.Core.Tests.DataSource
             },
             new()
             {
+                ComparisonConfig = new TestComparisonConfig()
+                {
+                    ReferenceObject = TestRepositories.First.CommitByMessage("Added Class3.cs")
+                },
                 Repository = TestRepositories.First,
-                Reference = TestRepositories.First.CommitByMessage("Added Class3.cs"),
                 FilesInChangeset = new string[]
                 {
                     "FeatureClass.cs"
@@ -31,8 +38,11 @@ namespace GitTreeFilter.Core.Tests.DataSource
             },
             new()
             {
+                ComparisonConfig = new TestComparisonConfig()
+                {
+                    ReferenceObject = TestRepositories.First.CommitByMessage("Added Class2")
+                },
                 Repository = TestRepositories.First,
-                Reference = TestRepositories.First.CommitByMessage("Added Class2"),
                 FilesInChangeset = new string[]
                 {
                     "Class3.cs",

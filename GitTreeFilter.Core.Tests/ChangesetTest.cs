@@ -4,6 +4,7 @@ using GitTreeFilter.Core.Exceptions;
 using GitTreeFilter.Core.Models;
 using GitTreeFilter.Core.Tests.DataSource;
 using GitTreeFilter.Core.Tests.Repositories;
+using GitTreeFilter.Core.Tests.Test;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Immutable;
 using System.Linq;
@@ -64,11 +65,11 @@ namespace GitTreeFilter.Core.Tests
 
         [DataTestMethod]
         [FirstRepositoryChangesetDataSource]
-        public void FirstRepositoryChangeset(ITestRepository testRepository, GitReference<GitCommitObject> gitReference, IImmutableSet<string> changedFilesPaths)
+        public void FirstRepositoryChangeset(ITestRepository testRepository, TestComparisonConfig comparisonConfig, IImmutableSet<string> changedFilesPaths)
         {
             // given
             var solutionRepository = CreateSolutionRepository(testRepository);
-            ReferenceObject = gitReference;
+            SetComparisonConfig(comparisonConfig);
 
             // when
             var changeset = solutionRepository.Changeset;
