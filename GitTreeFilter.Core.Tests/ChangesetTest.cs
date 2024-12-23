@@ -65,7 +65,10 @@ namespace GitTreeFilter.Core.Tests
 
         [DataTestMethod]
         [FirstRepositoryChangesetDataSource]
-        public void FirstRepositoryChangeset(ITestRepository testRepository, TestComparisonConfig comparisonConfig, IImmutableSet<string> changedFilesPaths)
+        public void FirstRepositoryChangeset(
+            ITestRepository testRepository,
+            TestComparisonConfig comparisonConfig,
+            IImmutableSet<string> changedFilesPaths)
         {
             // given
             var solutionRepository = CreateSolutionRepository(testRepository);

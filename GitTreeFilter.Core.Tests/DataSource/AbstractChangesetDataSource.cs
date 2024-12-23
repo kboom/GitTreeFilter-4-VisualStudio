@@ -35,11 +35,12 @@ namespace GitTreeFilter.Core.Tests.DataSource
         {
             if (data != null)
             {
+                TestComparisonConfig config = data[1] as TestComparisonConfig;
                 var repositoryName = (data[0] as ITestRepository).Name;
-                var targetName = (data[1] as TestComparisonConfig).ReferenceObject.FriendlyName;
-                var targetType = data[1].GetType();
+                var targetName = config.ReferenceObject.FriendlyName;
+                var targetType = config.ReferenceObject.GetType().Name;
 
-                return string.Format(CultureInfo.CurrentCulture, "{0} ({1} reference {2} {3})", methodInfo.Name, repositoryName, targetName, targetType);
+                return string.Format(CultureInfo.CurrentCulture, "{4}: {0} ({3} {2} in {1})", methodInfo.Name, repositoryName, targetName, targetType, config.TestName);
             }
 
             return null;
@@ -48,6 +49,8 @@ namespace GitTreeFilter.Core.Tests.DataSource
 
     internal class ChangesetDescriptor
     {
+        public string TestName { get; set; }
+
         public ITestRepository Repository { get; set; }
 
         public IReadOnlyList<string> FilesInChangeset { get; set; }

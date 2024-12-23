@@ -101,38 +101,37 @@ namespace GitTreeFilter.Core
         {
             get
             {
-                using (var repository = _repositoryFactory.Create(GitSolution))
+                using var repository = _repositoryFactory.Create(GitSolution);
+
+                AssertValidReference(repository, ComparisonConfig.ReferenceObject);
+                var changeset = CollectTreeChanges(repository);
+
+                // this works, but is quite slow
+                var repositoryStatus = repository.RetrieveStatus(new StatusOptions()
                 {
-                    AssertValidReference(repository, ComparisonConfig.ReferenceObject);
-                    var changeset = CollectTreeChanges(repository);
+                    Show = StatusShowOption.IndexAndWorkDir,
+                    IncludeIgnored = false,
+                    ExcludeSubmodules = true,
+                    RecurseUntrackedDirs = false,
+                    DisablePathSpecMatch = true,
+                    IncludeUnaltered = false,
+                    IncludeUntracked = true,
 
-                    // this works, but is quite slow
-                    var repositoryStatus = repository.RetrieveStatus(new StatusOptions()
-                    {
-                        Show = StatusShowOption.IndexAndWorkDir,
-                        IncludeIgnored = false,
-                        ExcludeSubmodules = true,
-                        RecurseUntrackedDirs = false,
-                        DisablePathSpecMatch = true,
-                        IncludeUnaltered = false,
-                        IncludeUntracked = true,
+                    DetectRenamesInIndex = false,
+                    DetectRenamesInWorkDir = false
 
-                        DetectRenamesInIndex = false,
-                        DetectRenamesInWorkDir = false
+                });
+                var filesToAdd = GetExtraFilesToAdd(repositoryStatus).ToList();
 
-                    });
-                    var filesToAdd = GetExtraFilesToAdd(repositoryStatus).ToList();
+                // For the untracked changes, we should also compare them to history commit since otherwise there will be no "compare diff" capability
+                var untrackedChanges = filesToAdd.Select(x => CreateDiffedObject(repository, x)).ToHashSet();
 
-                    // For the untracked changes, we should also compare them to history commit since otherwise there will be no "compare diff" capability
-                    var untrackedChanges = filesToAdd.Select(x => CreateDiffedObject(repository, x)).ToHashSet();
+                var filesToRemove = GetExtraFilesToRemove(repositoryStatus).ToHashSet();
 
-                    var filesToRemove = GetExtraFilesToRemove(repositoryStatus).ToHashSet();
+                changeset.RemoveWhere(x => filesToRemove.Contains(x.AbsoluteFilePath));
+                changeset.UnionWith(untrackedChanges);
 
-                    changeset.RemoveWhere(x => filesToRemove.Contains(x.AbsoluteFilePath));
-                    changeset.UnionWith(untrackedChanges);
-
-                    return new GitChangeset(changeset);
-                }
+                return new GitChangeset(changeset);
             }
         }
 
@@ -261,9 +260,9 @@ namespace GitTreeFilter.Core
 
             return new GitItem(
                 GitSolution,
-                    _repositoryFactory,
-                    null,
-                    absoluteFilePath
+                _repositoryFactory,
+                null,
+                absoluteFilePath
             );
         }
 
@@ -279,10 +278,10 @@ namespace GitTreeFilter.Core
 
             return new GitItem(
                 GitSolution,
-                    _repositoryFactory,
-                    ComparisonConfig.ReferenceObject,
-                    absoluteFilePath,
-                    oldAbsoluteFilePath
+                _repositoryFactory,
+                ComparisonConfig.ReferenceObject,
+                absoluteFilePath,
+                oldAbsoluteFilePath
             );
         }
 
@@ -343,7 +342,7 @@ namespace GitTreeFilter.Core
             var targetCommit = RepositoryExtensions.GetTargetCommit(repository, ComparisonConfig.ReferenceObject);
 
             var branchDiffResult = repository.Diff.Compare<TreeChanges>(
-               targetCommit.Tree,
+                targetCommit.Tree,
                 repository.Head.Tip.Tree,
                 compareOptions);
 
