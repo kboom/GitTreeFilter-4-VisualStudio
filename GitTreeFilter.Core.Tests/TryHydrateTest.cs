@@ -19,7 +19,7 @@ namespace GitTreeFilter.Core.Tests
         {
             // given
             var solutionRepository = CreateSolutionRepository(testRepository);
-            var expectedCommit = testRepository.Commits.RandomElement();
+            var expectedCommit = testRepository.AllCommits.RandomElement();
             var rawCommit = new GitCommitObject(expectedCommit.Reference.Sha);
             var rawGitCommit = new GitCommit(rawCommit);
 
@@ -100,7 +100,7 @@ namespace GitTreeFilter.Core.Tests
         {
             // given
             var solutionRepository = CreateSolutionRepository(testRepository);
-            var expectedCommit = testRepository.Commits.RandomElement();
+            var expectedCommit = testRepository.AllCommits.RandomElement();
             var rawCommit = new GitCommitObject(expectedCommit.Reference.Sha);
             const string missingBranchName = "branch-that-does-not-exist";
             var rawGitBranch = new GitBranch(rawCommit, missingBranchName);
@@ -128,7 +128,7 @@ namespace GitTreeFilter.Core.Tests
         {
             // given
             var solutionRepository = CreateSolutionRepository(testRepository);
-            var expectedCommit = testRepository.Commits.RandomElement();
+            var expectedCommit = testRepository.AllCommits.RandomElement();
             var rawCommit = new GitCommitObject(expectedCommit.Reference.Sha);
             const string missingTagName = "branch-that-does-not-exist";
             var rawGitTag = new GitTag(rawCommit, missingTagName);

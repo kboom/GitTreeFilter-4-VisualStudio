@@ -1,8 +1,11 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using FluentAssertions;
 using FluentAssertions.Execution;
+using GitTreeFilter.Core.Models;
 using GitTreeFilter.Core.Tests.DataSource;
 using GitTreeFilter.Core.Tests.Repositories;
+using LibGit2Sharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace GitTreeFilter.Core.Tests
@@ -50,17 +53,16 @@ namespace GitTreeFilter.Core.Tests
             // then
             using (new AssertionScope())
             {
-                tags.Select(b => b.FriendlyName)
-                    .Should()
-                    .Equal(testRepository.Tags.Select(x => x.FriendlyName));
-
-                tags.Select(b => b.Reference.Sha)
-                    .Should()
-                    .Equal(testRepository.Tags.Select(x => x.Reference.Sha));
-
-                tags.Select(b => b.Reference.ShortMessage)
-                    .Should()
-                    .Equal(testRepository.Tags.Select(x => x.Reference.ShortMessage));
+                tags.Should().HaveCount(testRepository.Tags.Count);
+                tags.Should().SatisfyRespectively(testRepository.Tags.Select((expectedTag, index) => new Action<GitTag>(tag =>
+                {
+                    using (new AssertionScope($"Evaluating expected tag '{expectedTag.FriendlyName}' at index {index}"))
+                    {
+                        tag.FriendlyName.Should().Be(expectedTag.FriendlyName);
+                        tag.Reference.Sha.Should().Be(expectedTag.Reference.Sha);
+                        tag.Reference.ShortMessage.Should().Be(expectedTag.Reference.ShortMessage);
+                    }
+                })));
             }
         }
 

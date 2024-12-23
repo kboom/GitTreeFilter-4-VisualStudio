@@ -1,13 +1,12 @@
 ﻿using GitTreeFilter.Core.Models;
 
-namespace GitTreeFilter.Core
+namespace GitTreeFilter.Core;
+
+public interface IComparisonConfig
 {
-    public interface IComparisonConfig
-    {
-        GitReference<GitCommitObject> ReferenceObject { get; }
+    GitReference<GitCommitObject> ReferenceObject { get; }
 
-        bool OriginRefsOnly { get; }
+    bool OriginRefsOnly { get; }
 
-        bool PinToMergeHead { get; }
-    }
+    bool PinToMergeHead { get; }
 }

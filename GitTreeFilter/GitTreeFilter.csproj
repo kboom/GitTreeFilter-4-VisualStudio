@@ -61,6 +61,7 @@
     <Compile Include="Commands\Diffrence\OpenDiffCommandManager.cs" />
     <Compile Include="Commands\Diffrence\OpenPhysicalFileDiffCommand.cs" />
     <Compile Include="Commands\Diffrence\OpenProjectFileDiffCommand.cs" />
+    <Compile Include="GitTreeFilterProvider.GitFileFilter.cs" />
     <Compile Include="Models\ComparisonConfig.cs" />
     <Compile Include="GitTreeFilterErrorPresenter.cs" />
     <Compile Include="GitFilterSettingStore.cs" />

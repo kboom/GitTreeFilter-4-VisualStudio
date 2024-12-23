@@ -1,22 +1,50 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using GitTreeFilter.Core.Models;
 
-namespace GitTreeFilter.Core.Tests.Repositories
+namespace GitTreeFilter.Core.Tests.Repositories;
+
+public interface ITestRepository
 {
-    public interface ITestRepository
+    GitSolution Solution { get; }
+
+    /// <summary>
+    /// Currently checked out commit.
+    /// </summary>
+    GitCommit Head { get;  }
+
+    /// <summary>
+    /// All unique commit objects in the repository which belong to all known branches.
+    /// </summary>
+    IReadOnlyList<GitCommitObject> CommitObjects { get; }
+
+    /// <summary>
+    /// All unique commits in the repository which belong to all known branches.
+    /// </summary>
+    IReadOnlyList<GitCommit> AllCommits { get; }
+
+    /// <summary>
+    /// Commits which are in the history of the currently checked out branch.
+    /// </summary>
+    IReadOnlyList<GitCommit> HeadCommits { get; }
+
+    /// <summary>
+    /// All known branches.
+    /// </summary>
+    IReadOnlyList<GitBranch> Branches { get; }
+
+    /// <summary>
+    /// All known tags.
+    /// </summary>
+    IReadOnlyList<GitTag> Tags { get; }
+
+    string Name { get ; }
+}
+
+public static class ITestRepositoryExt
+{
+    public static GitCommit CommitByMessage(this ITestRepository repository, string name)
     {
-        GitSolution Solution { get; }
-
-        GitCommit Head { get;  }
-
-        IReadOnlyList<GitCommitObject> CommitObjects { get; }
-
-        IReadOnlyList<GitCommit> Commits { get; }
-
-        IReadOnlyList<GitBranch> Branches { get; }
-
-        IReadOnlyList<GitTag> Tags { get; }
-
-        string Name { get ; }
+        return repository.AllCommits.First(x => string.Equals(name, x.ShortMessage, System.StringComparison.Ordinal));
     }
 }
