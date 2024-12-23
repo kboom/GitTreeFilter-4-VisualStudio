@@ -87,13 +87,11 @@ namespace GitTreeFilter.Core
         {
             get
             {
-                using (var repository = _repositoryFactory.Create(GitSolution))
-                {
-                    return repository.Branches
-                        .Where(p => !ComparisonConfig.OriginRefsOnly || p.IsRemote)
-                        .Select(x => new GitBranch(x.Tip.ToGitCommitObject(), x.FriendlyName))
-                        .ToList();
-                }
+                using var repository = _repositoryFactory.Create(GitSolution);
+                return repository.Branches
+                    .Where(p => !ComparisonConfig.OriginRefsOnly || p.IsRemote)
+                    .Select(x => new GitBranch(x.Tip.ToGitCommitObject(), x.FriendlyName))
+                    .ToList();
             }
         }
 
@@ -104,6 +102,7 @@ namespace GitTreeFilter.Core
                 using var repository = _repositoryFactory.Create(GitSolution);
 
                 AssertValidReference(repository, ComparisonConfig.ReferenceObject);
+
                 var changeset = CollectTreeChanges(repository);
 
                 // this works, but is quite slow
@@ -233,10 +232,8 @@ namespace GitTreeFilter.Core
 
         public bool TryHydrate(GitReference<GitCommitObject> gitReference, out GitReference<GitCommitObject> hydratedReference)
         {
-            using (var repository = _repositoryFactory.Create(GitSolution))
-            {
-                return RepositoryExtensions.TryHydrate(repository, gitReference, out hydratedReference, ComparisonConfig);
-            }
+            using var repository = _repositoryFactory.Create(GitSolution);
+            return RepositoryExtensions.TryHydrate(repository, gitReference, out hydratedReference, ComparisonConfig);
         }
 
         internal SolutionRepository(
@@ -340,6 +337,18 @@ namespace GitTreeFilter.Core
             };
 
             var targetCommit = RepositoryExtensions.GetTargetCommit(repository, ComparisonConfig.ReferenceObject);
+
+            if (ComparisonConfig.PinToMergeHead)
+            {
+                // This will work, but the question is whether or not to do this globally through some sort of a checkbox - "find merge head"
+                // It makes little sense for the "commits" tab though, but only for "branches" and "tags" which are not generally selecting individual commits but just references.
+                Commit headCommit = repository.Head.Tip;
+                Commit mergeBase = repository.ObjectDatabase.FindMergeBase(headCommit, targetCommit);
+                if (mergeBase != null)
+                {
+                    targetCommit = mergeBase;
+                }
+            }
 
             var branchDiffResult = repository.Diff.Compare<TreeChanges>(
                 targetCommit.Tree,

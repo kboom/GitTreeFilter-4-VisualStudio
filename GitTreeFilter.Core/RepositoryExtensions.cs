@@ -81,22 +81,7 @@ namespace GitTreeFilter.Core
             try
             {
                 var branch = !string.IsNullOrEmpty(gitBranch.FriendlyName) ? repository.Branches[gitBranch.FriendlyName] : null;
-
                 Commit commitToUse = branch.Tip;
-                if (config.PinToMergeHead)
-                {
-                    // This will work, but the question is whether or not to do this globally through some sort of a checkbox - "find merge head"
-                    // It makes little sense for the "commits" tab though, but only for "branches" and "tags" which are not generally selecting individual commits but just references.
-                    Commit headCommit = repository.Head.Commits.First();
-                    Commit branchCommit = branch.Tip;
-                    Commit mergeBase = repository.ObjectDatabase.FindMergeBase(headCommit, branchCommit);
-
-                    if (mergeBase != null)
-                    {
-                        commitToUse = mergeBase;
-                    }
-                }
-
                 return new GitBranch(commitToUse.ToGitCommitObject(), branch.FriendlyName);
             } catch
             {
