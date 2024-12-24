@@ -8,8 +8,10 @@ $TestResourcesDir = Join-Path $PSScriptRoot "../TestResources"
 
 Push-Location (Join-Path $TestResourcesDir "TestRepository")
 git checkout feature
+git reset --hard origin/feature
 Pop-Location
 
 Push-Location (Join-Path $TestResourcesDir "TestRepository2")
 git checkout feature1
+git reset --hard origin/feature1
 Pop-Location

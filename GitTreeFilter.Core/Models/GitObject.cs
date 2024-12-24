@@ -84,11 +84,16 @@ namespace GitTreeFilter.Core.Models
         public override string ToString() => $"{GetType().Name}[{Reference}]";
     }
 
-    internal static class GitReferenceExtensions
+    public static class GitReferenceExtensions
     {
         public static ObjectId ToObjectId<T>(this GitReference<T> reference) where T : GitObject
         {
             return new ObjectId(reference.Reference.Sha);
+        }
+
+        public static GitCommit Tip(this GitBranch branch)
+        {
+            return new GitCommit(branch.Reference);
         }
     }
 

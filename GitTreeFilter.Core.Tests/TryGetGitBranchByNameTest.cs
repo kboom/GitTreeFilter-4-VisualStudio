@@ -34,7 +34,7 @@ namespace GitTreeFilter.Core.Tests
         public void DoesNotResolveIfNotPresent()
         {
             // given
-            var solutionRepository = CreateSolutionRepository(TestRepositories.First);
+            var solutionRepository = CreateSolutionRepository(TestRepositories.Basic);
 
             // when
             var wasResolved = solutionRepository.TryGetGitBranchByName("branch-which-does-not-exist", out var resolvedBranch);

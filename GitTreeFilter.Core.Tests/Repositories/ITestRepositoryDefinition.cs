@@ -43,8 +43,9 @@ public interface ITestRepository
 
 public static class ITestRepositoryExt
 {
-    public static GitCommit CommitByMessage(this ITestRepository repository, string name)
-    {
-        return repository.AllCommits.First(x => string.Equals(name, x.ShortMessage, System.StringComparison.Ordinal));
-    }
+    public static GitCommit CommitByMessage(this ITestRepository repository, string name) =>
+        repository.AllCommits.First(x => string.Equals(name, x.ShortMessage, System.StringComparison.Ordinal));
+
+    public static GitCommit TipOfBranch(this ITestRepository repository, string name) => 
+        repository.Branches.First(x => string.Equals(name, x.FriendlyName, System.StringComparison.Ordinal)).Tip();
 }

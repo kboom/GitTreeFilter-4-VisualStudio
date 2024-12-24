@@ -72,7 +72,7 @@ namespace GitTreeFilter.Core.Tests
         public void NumberOfTagsRequestedMatch(int expectedTagCount)
         {
             // given
-            var solutionRepository = CreateSolutionRepository(TestRepositories.First);
+            var solutionRepository = CreateSolutionRepository(TestRepositories.Basic);
 
             // when
             var recentTags = solutionRepository.GetRecentTags(expectedTagCount);
@@ -85,14 +85,14 @@ namespace GitTreeFilter.Core.Tests
         public void ReturnsNoMoreThanMaximumTagsAvailable()
         {
             // given
-            var solutionRepository = CreateSolutionRepository(TestRepositories.First);
+            var solutionRepository = CreateSolutionRepository(TestRepositories.Basic);
             const int moreTagsThanExist = 1000;
 
             // when
             var recentTags = solutionRepository.GetRecentTags(moreTagsThanExist);
 
             // then
-            recentTags.Should().HaveCount(TestRepositories.First.Tags.Count);
+            recentTags.Should().HaveCount(TestRepositories.Basic.Tags.Count);
         }
     }
 }

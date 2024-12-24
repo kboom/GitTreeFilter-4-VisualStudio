@@ -7,6 +7,8 @@ using GitTreeFilter.Core.Models;
 namespace GitTreeFilter.Core.Tests.Repositories
 {
     /// <summary>
+    /// The simple repository to validate basic functionality.
+    /// 
     /// This repository contains a "feature" branch created from the "main" branch. 
     /// The "feature" branch has one additional commit not yet merged into the "main" branch.
     /// Similarly, the "main" branch has one additional commit not present in the "feature" branch.

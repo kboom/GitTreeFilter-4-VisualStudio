@@ -19,7 +19,7 @@ namespace GitTreeFilter.Core.Tests
         public void ThrowsNothingToCompareExceptionIfReferenceNotSet()
         {
             // given
-            var solutionRepository = CreateSolutionRepository(TestRepositories.First);
+            var solutionRepository = CreateSolutionRepository(TestRepositories.Basic);
             ReferenceObject = null;
 
             // when & then
@@ -33,7 +33,7 @@ namespace GitTreeFilter.Core.Tests
         public void ThrowsRepositoryTargetNotFoundExceptionIfReferenceSetToMissingObject()
         {
             // given
-            var solutionRepository = CreateSolutionRepository(TestRepositories.First);
+            var solutionRepository = CreateSolutionRepository(TestRepositories.Basic);
             const string missingSha = "9eabf5b536662000f79978c4d1b6e4eff5c8d785";
             ReferenceObject = new GitCommit(new GitCommitObject(missingSha, "any description"));
 
@@ -64,11 +64,33 @@ namespace GitTreeFilter.Core.Tests
         }
 
         [DataTestMethod]
-        [FirstRepositoryChangesetDataSource]
-        public void FirstRepositoryChangeset(
+        [BasicRepositoryChangesetDataSource]
+        public void BasicRepositoryChangeset(
             ITestRepository testRepository,
             TestComparisonConfig comparisonConfig,
             IImmutableSet<string> changedFilesPaths)
+        {
+            // given
+            var solutionRepository = CreateSolutionRepository(testRepository);
+            SetComparisonConfig(comparisonConfig);
+
+            // when
+            var changeset = solutionRepository.Changeset;
+
+            // then
+            using (new AssertionScope())
+            {
+                changeset.Should().NotBeNull();
+                changeset.Select(x => x.AbsoluteFilePath).Should().BeEquivalentTo(changedFilesPaths);
+            }
+        }
+
+        [DataTestMethod]
+        [MergeRepositoryChangesetDataSource]
+        public void MergeRepositoryChangeset(
+           ITestRepository testRepository,
+           TestComparisonConfig comparisonConfig,
+           IImmutableSet<string> changedFilesPaths)
         {
             // given
             var solutionRepository = CreateSolutionRepository(testRepository);

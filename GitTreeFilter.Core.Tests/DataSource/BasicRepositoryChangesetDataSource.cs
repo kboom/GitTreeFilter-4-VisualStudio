@@ -5,8 +5,10 @@ using GitTreeFilter.Core.Tests.Test;
 
 namespace GitTreeFilter.Core.Tests.DataSource
 {
-    internal class FirstRepositoryChangesetDataSourceAttribute : AbstractChangesetDataSource
+    internal class BasicRepositoryChangesetDataSourceAttribute : AbstractChangesetDataSource
     {
+        private readonly static ITestRepository Repository = TestRepositories.Basic;
+
         public override IReadOnlyList<ChangesetDescriptor> GetDescriptors() => new List<ChangesetDescriptor>
         {
             new()
@@ -14,9 +16,9 @@ namespace GitTreeFilter.Core.Tests.DataSource
                 ComparisonConfig = new TestComparisonConfig()
                 {
                     TestName = "All changes in HEAD",
-                    ReferenceObject = TestRepositories.First.HeadCommits.Last()
+                    ReferenceObject = Repository.HeadCommits.Last()
                 },
-                Repository = TestRepositories.First,
+                Repository = Repository,
                 FilesInChangeset = new string[]
                 {
                     "Class1.cs",
@@ -30,9 +32,9 @@ namespace GitTreeFilter.Core.Tests.DataSource
                 ComparisonConfig = new TestComparisonConfig()
                 {
                     TestName = "Commit before current in HEAD",
-                    ReferenceObject = TestRepositories.First.CommitByMessage("Added Class3.cs")
+                    ReferenceObject = Repository.CommitByMessage("Added Class3.cs")
                 },
-                Repository = TestRepositories.First,
+                Repository = Repository,
                 FilesInChangeset = new string[]
                 {
                     "FeatureClass.cs"
@@ -43,9 +45,9 @@ namespace GitTreeFilter.Core.Tests.DataSource
                 ComparisonConfig = new TestComparisonConfig()
                 {
                     TestName = "Flattening added and removed classes",
-                    ReferenceObject = TestRepositories.First.CommitByMessage("Added Class2")
+                    ReferenceObject = Repository.CommitByMessage("Added Class2")
                 },
-                Repository = TestRepositories.First,
+                Repository = Repository,
                 FilesInChangeset = new string[]
                 {
                     "Class3.cs",
@@ -57,28 +59,24 @@ namespace GitTreeFilter.Core.Tests.DataSource
                 ComparisonConfig = new TestComparisonConfig()
                 {
                     TestName = "Commit missing in HEAD with PinToMergeHead OFF",
-                    ReferenceObject = TestRepositories.First.CommitByMessage("Added Class4.cs"),
+                    ReferenceObject = Repository.CommitByMessage("Added Class4.cs"),
                     PinToMergeHead = false
                 },
-                Repository = TestRepositories.First,
+                Repository = Repository,
                 FilesInChangeset = new string[]
                 {
-                    "FeatureClass.cs",
-                    "Class4.cs"
+                    "FeatureClass.cs"
                 }
             },
-            // Probably we also need to test a merge from master into feature to really see the difference but this is more complex and probably requires a focused repo
-            // Create a new local repo and test this assumption quickly, if it holds then create a real repo in github.
-            // Do not overcomplicate this simple one, it needs to verify the basic functionality which it already does.
             new()
             {
                 ComparisonConfig = new TestComparisonConfig()
                 {
                     TestName = "Commit missing in HEAD with PinToMergeHead ON",
-                    ReferenceObject = TestRepositories.First.CommitByMessage("Added Class4.cs"),
+                    ReferenceObject = Repository.CommitByMessage("Added Class4.cs"),
                     PinToMergeHead = true
                 },
-                Repository = TestRepositories.First,
+                Repository = Repository,
                 FilesInChangeset = new string[]
                 {
                     "FeatureClass.cs"
