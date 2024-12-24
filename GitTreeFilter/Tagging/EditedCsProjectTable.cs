@@ -13,7 +13,11 @@ class ProjectTable : IItemTable<EnvDTE.Project, string>
         return value;
     }
 
-    public void Insert(EnvDTE.Project key, string value) => conditionalWeakTable.Add(key, value);
+    public void Insert(EnvDTE.Project key, string value)
+    {
+        conditionalWeakTable.Remove(key);
+        conditionalWeakTable.Add(key, value);
+    }
 
     public void Dispose()
     {
