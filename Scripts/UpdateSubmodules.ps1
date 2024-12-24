@@ -6,5 +6,10 @@ git submodule foreach git checkout main
 
 $TestResourcesDir = Join-Path $PSScriptRoot "../TestResources"
 
-git --git-dir (Join-Path $TestResourcesDir "TestRepository") checkout feature
-git --git-dir (Join-Path $TestResourcesDir "TestRepository2") checkout feature
+Push-Location (Join-Path $TestResourcesDir "TestRepository")
+git checkout feature
+Pop-Location
+
+Push-Location (Join-Path $TestResourcesDir "TestRepository2")
+git checkout feature1
+Pop-Location

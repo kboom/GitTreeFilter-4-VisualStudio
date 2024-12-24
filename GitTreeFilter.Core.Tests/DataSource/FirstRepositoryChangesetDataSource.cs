@@ -67,6 +67,9 @@ namespace GitTreeFilter.Core.Tests.DataSource
                     "Class4.cs"
                 }
             },
+            // Probably we also need to test a merge from master into feature to really see the difference but this is more complex and probably requires a focused repo
+            // Create a new local repo and test this assumption quickly, if it holds then create a real repo in github.
+            // Do not overcomplicate this simple one, it needs to verify the basic functionality which it already does.
             new()
             {
                 ComparisonConfig = new TestComparisonConfig()
