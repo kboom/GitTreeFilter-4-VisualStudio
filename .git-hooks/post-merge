@@ -5,5 +5,12 @@ git submodule update --init --remote
 git submodule foreach git pull origin main
 git submodule foreach git checkout main
 
-cd TestResources/TestRepository
-git checkout feature
+(
+  cd TestResources/TestRepository || exit
+  git checkout feature
+)
+
+(
+  cd TestResources/TestRepository2 || exit
+  git checkout feature
+)
