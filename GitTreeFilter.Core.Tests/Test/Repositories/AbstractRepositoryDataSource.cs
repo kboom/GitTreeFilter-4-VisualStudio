@@ -1,11 +1,10 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
-using GitTreeFilter.Core.Tests.Repositories;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace GitTreeFilter.Core.Tests.DataSource
+namespace GitTreeFilter.Core.Tests.Test.Repositories
 {
     [AttributeUsage(AttributeTargets.Method)]
     internal abstract class AbstractRepositoryDataSource : Attribute, ITestDataSource

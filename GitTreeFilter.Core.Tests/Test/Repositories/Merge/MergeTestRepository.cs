@@ -1,10 +1,11 @@
 ﻿using GitTreeFilter.Core.Models;
+using GitTreeFilter.Core.Tests.Test.Repositories.Basic;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace GitTreeFilter.Core.Tests.Repositories
+namespace GitTreeFilter.Core.Tests.Test.Repositories.Merge
 {
     /// <summary>
     /// The repository to validate behavior for all types of merging.

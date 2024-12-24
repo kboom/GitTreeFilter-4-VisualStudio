@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using GitTreeFilter.Core.Tests.Repositories;
-using GitTreeFilter.Core.Tests.Test;
 
-namespace GitTreeFilter.Core.Tests.DataSource
+namespace GitTreeFilter.Core.Tests.Test.Repositories.Basic
 {
     internal class BasicRepositoryChangesetDataSourceAttribute : AbstractChangesetDataSource
     {

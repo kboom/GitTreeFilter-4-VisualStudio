@@ -1,8 +1,7 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Execution;
-using GitTreeFilter.Core.Tests.DataSource;
 using GitTreeFilter.Core.Tests.Extensions;
-using GitTreeFilter.Core.Tests.Repositories;
+using GitTreeFilter.Core.Tests.Test.Repositories;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace GitTreeFilter.Core.Tests
@@ -23,11 +22,11 @@ namespace GitTreeFilter.Core.Tests
             var wasResolved = solutionRepository.TryGetGitBranchByName(expectedBranch.FriendlyName, out var resolvedBranch);
 
             // then
-            using(new AssertionScope())
+            using (new AssertionScope())
             {
                 wasResolved.Should().BeTrue();
                 resolvedBranch.Should().BeEquivalentTo(expectedBranch);
-            } 
+            }
         }
 
         [TestMethod]

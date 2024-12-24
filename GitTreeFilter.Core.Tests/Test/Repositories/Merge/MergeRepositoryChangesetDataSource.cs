@@ -1,9 +1,7 @@
-﻿using GitTreeFilter.Core.Tests.Repositories;
-using GitTreeFilter.Core.Tests.Test;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace GitTreeFilter.Core.Tests.DataSource
+namespace GitTreeFilter.Core.Tests.Test.Repositories.Merge
 {
     internal class MergeRepositoryChangesetDataSourceAttribute : AbstractChangesetDataSource
     {

@@ -1,7 +1,4 @@
-﻿using GitTreeFilter.Core.Models;
-using GitTreeFilter.Core.Tests.Repositories;
-using GitTreeFilter.Core.Tests.Test;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace GitTreeFilter.Core.Tests.DataSource
+namespace GitTreeFilter.Core.Tests.Test.Repositories
 {
     [AttributeUsage(AttributeTargets.Method)]
     internal abstract class AbstractChangesetDataSource : Attribute, ITestDataSource

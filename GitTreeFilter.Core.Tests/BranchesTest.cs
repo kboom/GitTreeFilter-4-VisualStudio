@@ -1,8 +1,7 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Execution;
 using GitTreeFilter.Core.Models;
-using GitTreeFilter.Core.Tests.DataSource;
-using GitTreeFilter.Core.Tests.Repositories;
+using GitTreeFilter.Core.Tests.Test.Repositories;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;

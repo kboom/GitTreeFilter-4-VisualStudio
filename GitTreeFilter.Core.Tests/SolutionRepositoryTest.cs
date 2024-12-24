@@ -1,6 +1,6 @@
 using GitTreeFilter.Core.Models;
-using GitTreeFilter.Core.Tests.Repositories;
 using GitTreeFilter.Core.Tests.Test;
+using GitTreeFilter.Core.Tests.Test.Repositories;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 
@@ -20,7 +20,8 @@ namespace GitTreeFilter.Core.Tests
             set { _comparisonConfig.ReferenceObject = value; }
         }
 
-        public bool OriginRefsOnly { 
+        public bool OriginRefsOnly
+        {
             get { return _comparisonConfig.OriginRefsOnly; }
             set { _comparisonConfig.OriginRefsOnly = value; }
         }

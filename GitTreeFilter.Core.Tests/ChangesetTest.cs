@@ -2,9 +2,10 @@
 using FluentAssertions.Execution;
 using GitTreeFilter.Core.Exceptions;
 using GitTreeFilter.Core.Models;
-using GitTreeFilter.Core.Tests.DataSource;
-using GitTreeFilter.Core.Tests.Repositories;
 using GitTreeFilter.Core.Tests.Test;
+using GitTreeFilter.Core.Tests.Test.Repositories;
+using GitTreeFilter.Core.Tests.Test.Repositories.Basic;
+using GitTreeFilter.Core.Tests.Test.Repositories.Merge;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Immutable;
 using System.Linq;
@@ -56,11 +57,11 @@ namespace GitTreeFilter.Core.Tests
             var changeset = solutionRepository.Changeset;
 
             // then
-            using(new AssertionScope())
+            using (new AssertionScope())
             {
                 changeset.Should().NotBeNull();
                 changeset.Should().BeEmpty();
-            } 
+            }
         }
 
         [DataTestMethod]

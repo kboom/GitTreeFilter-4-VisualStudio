@@ -1,10 +1,10 @@
-﻿using System;
+﻿using GitTreeFilter.Core.Models;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using GitTreeFilter.Core.Models;
 
-namespace GitTreeFilter.Core.Tests.Repositories
+namespace GitTreeFilter.Core.Tests.Test.Repositories.Basic
 {
     /// <summary>
     /// The simple repository to validate basic functionality.

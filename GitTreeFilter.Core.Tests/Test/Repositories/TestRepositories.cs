@@ -1,4 +1,7 @@
-﻿namespace GitTreeFilter.Core.Tests.Repositories
+﻿using GitTreeFilter.Core.Tests.Test.Repositories.Basic;
+using GitTreeFilter.Core.Tests.Test.Repositories.Merge;
+
+namespace GitTreeFilter.Core.Tests.Test.Repositories
 {
     public static class TestRepositories
     {

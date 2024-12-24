@@ -1,5 +1,4 @@
 using GitTreeFilter.Core.Models;
-using System;
 
 namespace GitTreeFilter.Core.Tests.Test.Fakes;
 

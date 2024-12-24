@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using GitTreeFilter.Core.Models;
+using System.Collections.Generic;
 using System.Linq;
-using GitTreeFilter.Core.Models;
 
-namespace GitTreeFilter.Core.Tests.Repositories;
+namespace GitTreeFilter.Core.Tests.Test.Repositories;
 
 public interface ITestRepository
 {
@@ -11,7 +11,7 @@ public interface ITestRepository
     /// <summary>
     /// Currently checked out commit.
     /// </summary>
-    GitCommit Head { get;  }
+    GitCommit Head { get; }
 
     /// <summary>
     /// All unique commit objects in the repository which belong to all known branches.
@@ -38,7 +38,7 @@ public interface ITestRepository
     /// </summary>
     IReadOnlyList<GitTag> Tags { get; }
 
-    string Name { get ; }
+    string Name { get; }
 }
 
 public static class ITestRepositoryExt
@@ -46,6 +46,6 @@ public static class ITestRepositoryExt
     public static GitCommit CommitByMessage(this ITestRepository repository, string name) =>
         repository.AllCommits.First(x => string.Equals(name, x.ShortMessage, System.StringComparison.Ordinal));
 
-    public static GitCommit TipOfBranch(this ITestRepository repository, string name) => 
+    public static GitCommit TipOfBranch(this ITestRepository repository, string name) =>
         repository.Branches.First(x => string.Equals(name, x.FriendlyName, System.StringComparison.Ordinal)).Tip();
 }
