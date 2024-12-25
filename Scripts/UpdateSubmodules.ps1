@@ -1,8 +1,9 @@
 Write-Host "Updating submodules"
 
 git submodule update --init --remote
-git submodule foreach git pull origin main
+git submodule foreach git fetch origin
 git submodule foreach git checkout main
+git submodule foreach git reset --hard origin/main
 
 $TestResourcesDir = Join-Path $PSScriptRoot "../TestResources"
 

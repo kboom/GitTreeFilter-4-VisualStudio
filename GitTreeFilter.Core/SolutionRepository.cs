@@ -346,6 +346,8 @@ namespace GitTreeFilter.Core
 
             if (ComparisonConfig.PinToMergeHead)
             {
+                // This is not necessary, compare does find merge base automatically!
+
                 Commit mergeBase = repository.ObjectDatabase.FindMergeBase(headCommit, targetCommit);
                 if (mergeBase != null)
                 {

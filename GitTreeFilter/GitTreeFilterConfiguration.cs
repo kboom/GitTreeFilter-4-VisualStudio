@@ -20,10 +20,10 @@ public class GlobalSettings : DialogPage, IGlobalSettings
     [Category(c_category)]
     [DisplayName("Default branch to compare to")]
     [Description("The default branch for which a tree to compare to will be taken.")]
-    public string DefaultBranch { get; set; } = "master";
+    public string DefaultBranch { get; set; } = "origin/master";
 
     [Category(c_category)]
     [DisplayName("Display only origin references")]
-    [Description("In case your branch pulled changes from origin but you are comparing to local master you will see unrelated changes. This prevents you from comparing to local branches.")]
-    public bool OriginRefsOnly { get; set; } = false;
+    [Description("If your branch has pulled changes from the origin that are not present in the local branch you're comparing to, unrelated changes will appear. This makes it difficult to compare with local branches. Setting this option to 'true' (default) is recommended.")]
+    public bool OriginRefsOnly { get; set; } = true;
 }

@@ -174,7 +174,10 @@ class GitFilterService : SGitFilterService, IGitFilterService
         LoadSessionSettings();
         ItemTagManager.CreateTagTables();
 
-        await CommandRegistrar.InitializeAsync(_package);
+        if (PluginState == PluginLifecycleState.LOADING)
+        {
+            await CommandRegistrar.InitializeAsync(_package);
+        }
 
         PluginState = PluginLifecycleState.RUNNING;
     }

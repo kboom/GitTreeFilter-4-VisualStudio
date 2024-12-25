@@ -63,7 +63,6 @@ internal class CommandRegistrar
             menuCommand.Visible = command.IsVisible;
         };
 
-        commandService.RemoveCommand(menuCommand);
         commandService.AddCommand(menuCommand);
     }
 }
