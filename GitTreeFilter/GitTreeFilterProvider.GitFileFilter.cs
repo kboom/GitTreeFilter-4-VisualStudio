@@ -185,7 +185,9 @@ public sealed partial class GitFilterProvider
             {
                 await TaskScheduler.Default;
 
-                if (!TryCreateChangeset(out var changeset))
+                GitChangeset gitChangeset = await CreateChangesetAsync(cancellationToken).ConfigureAwait(false);
+
+                if (gitChangeset is null)
                 {
                     // Displaying no items is better than displaying all as it would suggest filter doesn't work
                     IncludedItems = await _hierarchyCollectionProvider.GetFilteredHierarchyItemsAsync(_allItems, (_) => false, cancellationToken);
@@ -193,7 +195,7 @@ public sealed partial class GitFilterProvider
                     return false;
                 }
 
-                var filter = new ChangesetFilter(changeset, _gitFilterService.ItemTagManager);
+                var filter = new ChangesetFilter(gitChangeset, _gitFilterService.ItemTagManager);
 
                 IncludedItems = await _hierarchyCollectionProvider.GetFilteredHierarchyItemsAsync(
                     _allItems,
@@ -205,40 +207,50 @@ public sealed partial class GitFilterProvider
                 return true;
             }
 
-            private bool TryCreateChangeset(out GitChangeset changeset)
+            private async Task<GitChangeset> CreateChangesetAsync(CancellationToken cancellationToken)
             {
-                changeset = null;
                 try
                 {
-                    changeset = _solutionRepository.Changeset;
-                    return true;
+                    return _solutionRepository.Changeset;
                 }
                 catch (NothingToCompareException)
                 {
-                    _gitFilterService.ErrorPresenter.ShowError("You must first select the reference object to compare your worktree to. Use the green button with the settings icon in the solution toolbar!");
-                    ActivityLog.LogWarning(nameof(GitFiltersObservableSet), "No selected reference");
-                    return false;
+                    await ShowErrorOnMainThreadAsync(
+                        "You must first select the reference object to compare your worktree to. Use the green button with the settings icon in the solution toolbar!",
+                        "No selected reference");
+                    return null;
                 }
                 catch (GitRepoNotFoundException)
                 {
-                    _gitFilterService.ErrorPresenter.ShowError("You must select a git repository first! You can do this at the bottom right corner of the window.");
-                    ActivityLog.LogWarning(nameof(GitFiltersObservableSet), "Not a git repository");
-                    return false;
+                    await ShowErrorOnMainThreadAsync(
+                        "You must select a git repository first! You can do this at the bottom right corner of the window.",
+                        "Not a git repository");
+                    return null;
                 }
                 catch (HeadNotFoundException)
                 {
-                    _gitFilterService.ErrorPresenter.ShowError("Unable to locate the HEAD of your current changes. Make sure you are tracking a branch.");
-                    ActivityLog.LogWarning(nameof(GitFiltersObservableSet), "Unable to find a HEAD in the current repository");
-                    return false;
+                    await ShowErrorOnMainThreadAsync(
+                        "Unable to locate the HEAD of your current changes. Make sure you are tracking a branch.",
+                        "Unable to find a HEAD in the current repository");
+                    return null;
                 }
                 catch (GitOperationException)
                 {
-                    _gitFilterService.ErrorPresenter.ShowError("Unknown Git operation error.");
-                    ActivityLog.LogWarning(nameof(GitFiltersObservableSet), "Unable to compare the selected refs");
-                    return false;
+                    await ShowErrorOnMainThreadAsync(
+                        "Unknown Git operation error.",
+                        "Unable to compare the selected refs");
+                    return null;
                 }
             }
+
+            private async Task ShowErrorOnMainThreadAsync(string errorMessage, string logMessage)
+            {
+                ActivityLog.LogWarning(nameof(GitFiltersObservableSet), logMessage);
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                _gitFilterService.ErrorPresenter.ShowError(errorMessage);
+            }
         }
+
 
         private class ChangesetFilter
         {
