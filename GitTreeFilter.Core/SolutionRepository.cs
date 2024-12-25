@@ -330,19 +330,22 @@ namespace GitTreeFilter.Core
 
         private HashSet<GitItem> CollectTreeChanges(IRepository repository)
         {
-            var compareOptions = new CompareOptions
-            {
-                Algorithm = DiffAlgorithm.Minimal,
-                IncludeUnmodified = false,
-            };
+            Commit headCommit = repository.Head.Tip;
+            Commit referenceCommit = SelectReferenceCommit(repository, headCommit);
 
+            TreeChanges branchDiffResult = CreateTreeChanges(repository, headCommit, referenceCommit);
+
+            var changes = GetViewableChanges(branchDiffResult);
+            var changeset = changes.Select(x => CreateDiffedObject(repository, x)).ToHashSet();
+            return changeset;
+        }
+
+        private Commit SelectReferenceCommit(IRepository repository, Commit headCommit)
+        {
             var targetCommit = RepositoryExtensions.GetTargetCommit(repository, ComparisonConfig.ReferenceObject);
 
             if (ComparisonConfig.PinToMergeHead)
             {
-                // This will work, but the question is whether or not to do this globally through some sort of a checkbox - "find merge head"
-                // It makes little sense for the "commits" tab though, but only for "branches" and "tags" which are not generally selecting individual commits but just references.
-                Commit headCommit = repository.Head.Tip;
                 Commit mergeBase = repository.ObjectDatabase.FindMergeBase(headCommit, targetCommit);
                 if (mergeBase != null)
                 {
@@ -350,14 +353,21 @@ namespace GitTreeFilter.Core
                 }
             }
 
-            var branchDiffResult = repository.Diff.Compare<TreeChanges>(
-                targetCommit.Tree,
-                repository.Head.Tip.Tree,
-                compareOptions);
+            return targetCommit;
+        }
 
-            var changes = GetViewableChanges(branchDiffResult);
-            var changeset = changes.Select(x => CreateDiffedObject(repository, x)).ToHashSet();
-            return changeset;
+        private static TreeChanges CreateTreeChanges(IRepository repository, Commit headCommit, Commit targetCommit)
+        {
+            var compareOptions = new CompareOptions
+            {
+                Algorithm = DiffAlgorithm.Minimal,
+                IncludeUnmodified = false,
+            };
+
+            return repository.Diff.Compare<TreeChanges>(
+                targetCommit.Tree,
+                headCommit.Tree,
+                compareOptions);
         }
 
         private static IEnumerable<string> GetExtraFilesToRemove(RepositoryStatus repositoryStatus)
