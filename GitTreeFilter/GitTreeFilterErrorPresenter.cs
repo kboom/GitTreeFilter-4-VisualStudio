@@ -1,14 +1,15 @@
-﻿using System.Windows.Forms;
+﻿using Microsoft.VisualStudio.Shell;
+using System.Windows.Forms;
 
 namespace GitTreeFilter;
 
 public class GitTreeFilterErrorPresenter
 {
-    public void ShowError(string error) => _ = MessageBox.Show(
-            error,
-            "Git Tree Filter Error");
+    private const string c_caption = "Git Tree Filter";
 
-    public void ShowInfo(string msg) => _ = MessageBox.Show(
-            msg,
-            "Nothing to compare");
+    public void ShowError(string error)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        _ = MessageBox.Show(error, c_caption);
+    }
 }

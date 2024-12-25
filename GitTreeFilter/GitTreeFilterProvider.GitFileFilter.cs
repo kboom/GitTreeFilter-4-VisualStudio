@@ -34,14 +34,14 @@ public sealed partial class GitFilterProvider
             _hierarchyCollectionProvider = hierarchyCollectionProvider;
             _gitFiltersService = filterService;
 
-            Initialized += BranchDiffFilter_Initialized;
+            Initialized += OnInitialized;
         }
 
         private ISolutionRepository SolutionRepository => _gitFiltersService.SolutionRepository;
 
         private GitFiltersObservableSet ItemSet { get; set; }
 
-        private void BranchDiffFilter_Initialized(object sender, EventArgs e)
+        private void OnInitialized(object sender, EventArgs e)
         {
             _gitFiltersService.GitFilterChanged += OnFilterChangedHandler;
             _gitFiltersService.IsFilterApplied = true;
@@ -60,17 +60,18 @@ public sealed partial class GitFilterProvider
 
         protected override async Task<IReadOnlyObservableSet> GetIncludedItemsAsync(IEnumerable<IVsHierarchyItem> rootItems)
         {
+            if (SolutionRepository is null)
+            {
+                // We are called before initialization.
+                _gitFiltersService.ErrorPresenter.ShowError("You must select a repository first.");
+                return null;
+            }
+
             var root = HierarchyUtilities.FindCommonAncestor(rootItems);
             var sourceItems = await _hierarchyCollectionProvider.GetDescendantsAsync(
                 root.HierarchyIdentity.NestedHierarchy,
                 CancellationToken
             );
-
-            if (SolutionRepository is null)
-            {
-                // We are called before initialization. Return all items.
-                return sourceItems;
-            }
 
             ItemSet = await GitFiltersObservableSet.CreateGitFiltersObservableSetAsync(
                 SolutionRepository,
@@ -134,24 +135,24 @@ public sealed partial class GitFilterProvider
         private class GitFiltersObservableSet : IReadOnlyObservableSet
         {
             private readonly ISolutionRepository _solutionRepository;
-            private readonly IGitFilterService _gitFiltersHub;
+            private readonly IGitFilterService _gitFilterService;
             private readonly IVsHierarchyItemCollectionProvider _hierarchyCollectionProvider;
             private readonly IReadOnlyObservableSet<IVsHierarchyItem> _allItems;
 
             private GitFiltersObservableSet(
                 ISolutionRepository solutionRepository,
-                IGitFilterService gitFiltersHub,
+                IGitFilterService gitFilterService,
                 IVsHierarchyItemCollectionProvider hierarchyCollectionProvider,
                 IReadOnlyObservableSet<IVsHierarchyItem> allItems)
             {
                 Assumes.NotNull(solutionRepository);
                 Assumes.NotNull(allItems);
-                Assumes.NotNull(gitFiltersHub);
+                Assumes.NotNull(gitFilterService);
                 Assumes.NotNull(hierarchyCollectionProvider);
 
                 _solutionRepository = solutionRepository;
                 _allItems = allItems;
-                _gitFiltersHub = gitFiltersHub;
+                _gitFilterService = gitFilterService;
                 _hierarchyCollectionProvider = hierarchyCollectionProvider;
 
                 _allItems.CollectionChanged += (sender, args) => CollectionChanged?.Invoke(sender, args);
@@ -192,7 +193,7 @@ public sealed partial class GitFilterProvider
                     return false;
                 }
 
-                var filter = new ChangesetFilter(changeset, _gitFiltersHub.ItemTagManager);
+                var filter = new ChangesetFilter(changeset, _gitFilterService.ItemTagManager);
 
                 IncludedItems = await _hierarchyCollectionProvider.GetFilteredHierarchyItemsAsync(
                     _allItems,
@@ -212,21 +213,28 @@ public sealed partial class GitFilterProvider
                     changeset = _solutionRepository.Changeset;
                     return true;
                 }
+                catch (NothingToCompareException)
+                {
+                    _gitFilterService.ErrorPresenter.ShowError("You must first select the reference object to compare your worktree to. Use the green button with the settings icon in the solution toolbar!");
+                    ActivityLog.LogWarning(nameof(GitFiltersObservableSet), "No selected reference");
+                    return false;
+                }
                 catch (GitRepoNotFoundException)
                 {
-                    ActivityLog.LogWarning(nameof(GitFiltersObservableSet), $"Not a git repository");
+                    _gitFilterService.ErrorPresenter.ShowError("You must select a git repository first! You can do this at the bottom right corner of the window.");
+                    ActivityLog.LogWarning(nameof(GitFiltersObservableSet), "Not a git repository");
                     return false;
                 }
                 catch (HeadNotFoundException)
                 {
-                    // fatal and probably won't go away, notify the user with popup
-                    ActivityLog.LogWarning(nameof(GitFiltersObservableSet), $"Unable to find a HEAD in the current repository");
+                    _gitFilterService.ErrorPresenter.ShowError("Unable to locate the HEAD of your current changes. Make sure you are tracking a branch.");
+                    ActivityLog.LogWarning(nameof(GitFiltersObservableSet), "Unable to find a HEAD in the current repository");
                     return false;
                 }
                 catch (GitOperationException)
                 {
-                    // add some less-invasive way of notifying, fall back to no items visible
-                    ActivityLog.LogWarning(nameof(GitFiltersObservableSet), $"Unable to compare the selected refs");
+                    _gitFilterService.ErrorPresenter.ShowError("Unknown Git operation error.");
+                    ActivityLog.LogWarning(nameof(GitFiltersObservableSet), "Unable to compare the selected refs");
                     return false;
                 }
             }

@@ -40,7 +40,7 @@ internal class FileDiffActions
         }
         else
         {
-            _messagePresenter.ShowInfo("This file has no changes but was displayed to retain the hierarchy.");
+            _messagePresenter.ShowError("This file has no changes but was displayed to retain the hierarchy.");
         }
     }
 

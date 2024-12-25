@@ -127,6 +127,8 @@ class GitFilterService : SGitFilterService, IGitFilterService
             await FailWithMessageBoxAsync();
         }
 
+        await SetUpAsync();
+
         _gitExt.PropertyChanged += OnRepositoryChanged;
         _dte.Events.SolutionEvents.Opened += SetUp;
         _dte.Events.SolutionEvents.BeforeClosing += () =>
