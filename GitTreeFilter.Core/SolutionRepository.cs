@@ -136,96 +136,84 @@ namespace GitTreeFilter.Core
 
         public IEnumerable<GitCommit> GetRecentCommits(int number = 50)
         {
-            using (var repository = _repositoryFactory.Create(GitSolution))
-            {
-                // TODO try to do this, as it shows all commits on the current branch
-                //git rev-list --first-parent master
-                //var firstParent = repository.Refs[""].
-
-                return repository.Commits
-                    .QueryBy(new CommitFilter()
-                    {
-                        FirstParentOnly = true,
-                        SortBy = CommitSortStrategies.Topological | CommitSortStrategies.Time,
-                        IncludeReachableFrom = repository.Head.Tip
-                    })
-                    .Take(number)
-                    .Select(x => x.ToGitCommit())
-                    .ToList();
-            }
+            using var repository = _repositoryFactory.Create(GitSolution);
+            return repository.Commits
+                .QueryBy(new CommitFilter()
+                {
+                    FirstParentOnly = true,
+                    SortBy = CommitSortStrategies.Topological | CommitSortStrategies.Time,
+                    IncludeReachableFrom = repository.Head.Tip
+                })
+                .Take(number)
+                .Select(x => x.ToGitCommit())
+                .ToList();
         }
 
         public IEnumerable<GitTag> GetRecentTags(int number = 50)
         {
-            using (var repository = _repositoryFactory.Create(GitSolution))
-            {
-                return repository.Tags
-                     .Where(x => !x.PeeledTarget.IsMissing)
-                     .Take(number)
-                     .Select(x =>
+            using var repository = _repositoryFactory.Create(GitSolution);
+            return repository.Tags
+                 .Where(x => !x.PeeledTarget.IsMissing)
+                 .Take(number)
+                 .Select(x =>
+                 {
+                     try
                      {
-                         try
-                         {
-                             var commit = repository.Lookup<Commit>(x.Target.Id);
-                             var gitCommit = RepositoryExtensions.ToGitCommitObject(commit);
-                             return RepositoryExtensions.ToGitTag(gitCommit, x.FriendlyName);
-                         }
-                         catch
-                         {
-                             return null;
-                         }
-                     })
-                     .Where(x => x != null)
-                     .ToList();
-            }
+                         var commit = repository.Lookup<Commit>(x.Target.Id);
+                         var gitCommit = RepositoryExtensions.ToGitCommitObject(commit);
+                         return RepositoryExtensions.ToGitTag(gitCommit, x.FriendlyName);
+                     }
+                     catch
+                     {
+                         return null;
+                     }
+                 })
+                 .Where(x => x != null)
+                 .ToList();
         }
 
         public bool TryGetGitBranchByName(string branchName, out GitBranch branch)
         {
-            using (var repository = _repositoryFactory.Create(GitSolution))
+            using var repository = _repositoryFactory.Create(GitSolution);
+            branch = null;
+            if (string.IsNullOrEmpty(branchName))
             {
-                branch = null;
-                if (string.IsNullOrEmpty(branchName))
-                {
-                    return false;
-                }
-
-                var branchObj = repository.Branches[branchName];
-                if (branchObj == null)
-                {
-                    return false;
-                }
-
-                var commit = branchObj.Tip;
-                branch = new GitBranch(RepositoryExtensions.ToGitCommitObject(commit), branchName);
-                return true;
+                return false;
             }
+
+            var branchObj = repository.Branches[branchName];
+            if (branchObj == null)
+            {
+                return false;
+            }
+
+            var commit = branchObj.Tip;
+            branch = new GitBranch(RepositoryExtensions.ToGitCommitObject(commit), branchName);
+            return true;
         }
 
         public bool TryReadItem(string path, out GitItem item)
         {
             item = null;
-            using (var repository = _repositoryFactory.Create(GitSolution))
+            using var repository = _repositoryFactory.Create(GitSolution);
+            var compareOptions = new CompareOptions
             {
-                var compareOptions = new CompareOptions
-                {
-                    Algorithm = DiffAlgorithm.Minimal,
-                    IncludeUnmodified = false,
-                };
+                Algorithm = DiffAlgorithm.Minimal,
+                IncludeUnmodified = false,
+            };
 
-                var targetCommit = RepositoryExtensions.GetTargetCommit(repository, ComparisonConfig.ReferenceObject);
+            var targetCommit = RepositoryExtensions.GetTargetCommit(repository, ComparisonConfig.ReferenceObject);
 
-                var branchDiffResult = repository.Diff.Compare<TreeChanges>(
-                   targetCommit.Tree,
-                    DiffTargets.WorkingDirectory, Enumerable.Repeat(path, 1));
+            var branchDiffResult = repository.Diff.Compare<TreeChanges>(
+               targetCommit.Tree,
+                DiffTargets.WorkingDirectory, Enumerable.Repeat(path, 1));
 
-                var changes = GetFileDiffViewableChanges(branchDiffResult);
-                item = changes.Select(x => CreateDiffedObject(repository, x)).FirstOrDefault();
+            var changes = GetFileDiffViewableChanges(branchDiffResult);
+            item = changes.Select(x => CreateDiffedObject(repository, x)).FirstOrDefault();
 
-                if (item == default)
-                {
-                    return false;
-                }
+            if (item == default)
+            {
+                return false;
             }
             return true;
         }
@@ -331,31 +319,13 @@ namespace GitTreeFilter.Core
         private HashSet<GitItem> CollectTreeChanges(IRepository repository)
         {
             Commit headCommit = repository.Head.Tip;
-            Commit referenceCommit = SelectReferenceCommit(repository, headCommit);
+            Commit referenceCommit = RepositoryExtensions.GetTargetCommit(repository, ComparisonConfig.ReferenceObject);
 
             TreeChanges branchDiffResult = CreateTreeChanges(repository, headCommit, referenceCommit);
 
             var changes = GetViewableChanges(branchDiffResult);
             var changeset = changes.Select(x => CreateDiffedObject(repository, x)).ToHashSet();
             return changeset;
-        }
-
-        private Commit SelectReferenceCommit(IRepository repository, Commit headCommit)
-        {
-            var targetCommit = RepositoryExtensions.GetTargetCommit(repository, ComparisonConfig.ReferenceObject);
-
-            if (ComparisonConfig.PinToMergeHead)
-            {
-                // This is not necessary, compare does find merge base automatically!
-
-                Commit mergeBase = repository.ObjectDatabase.FindMergeBase(headCommit, targetCommit);
-                if (mergeBase != null)
-                {
-                    targetCommit = mergeBase;
-                }
-            }
-
-            return targetCommit;
         }
 
         private static TreeChanges CreateTreeChanges(IRepository repository, Commit headCommit, Commit targetCommit)
