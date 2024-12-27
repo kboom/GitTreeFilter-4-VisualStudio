@@ -319,7 +319,7 @@ namespace GitTreeFilter.Core
         private HashSet<GitItem> CollectTreeChanges(IRepository repository)
         {
             Commit headCommit = repository.Head.Tip;
-            Commit referenceCommit = RepositoryExtensions.GetTargetCommit(repository, ComparisonConfig.ReferenceObject);
+            Commit referenceCommit = SelectReferenceCommit(repository, headCommit);
 
             TreeChanges branchDiffResult = CreateTreeChanges(repository, headCommit, referenceCommit);
 
@@ -328,7 +328,24 @@ namespace GitTreeFilter.Core
             return changeset;
         }
 
-        private static TreeChanges CreateTreeChanges(IRepository repository, Commit headCommit, Commit targetCommit)
+        private Commit SelectReferenceCommit(IRepository repository, Commit headCommit)
+        {
+            var targetCommit = RepositoryExtensions.GetTargetCommit(repository, ComparisonConfig.ReferenceObject);
+
+            if (ComparisonConfig.PinToMergeHead)
+            {
+                // This is necessary if an only if there are modified files which already exist in your local worktree.
+                Commit mergeBase = repository.ObjectDatabase.FindMergeBase(headCommit, targetCommit);
+                if (mergeBase != null)
+                {
+                    targetCommit = mergeBase;
+                }
+            }
+
+            return targetCommit;
+        }
+
+        private TreeChanges CreateTreeChanges(IRepository repository, Commit headCommit, Commit targetCommit)
         {
             var compareOptions = new CompareOptions
             {
