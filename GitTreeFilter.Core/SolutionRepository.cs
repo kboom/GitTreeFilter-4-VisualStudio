@@ -331,15 +331,12 @@ namespace GitTreeFilter.Core
         private Commit SelectReferenceCommit(IRepository repository, Commit headCommit)
         {
             var targetCommit = RepositoryExtensions.GetTargetCommit(repository, ComparisonConfig.ReferenceObject);
-
-            if (ComparisonConfig.PinToMergeHead)
+            
+            // This is necessary if an only if there are modified files which already exist in your local worktree.
+            Commit mergeBase = repository.ObjectDatabase.FindMergeBase(headCommit, targetCommit);
+            if (mergeBase != null)
             {
-                // This is necessary if an only if there are modified files which already exist in your local worktree.
-                Commit mergeBase = repository.ObjectDatabase.FindMergeBase(headCommit, targetCommit);
-                if (mergeBase != null)
-                {
-                    targetCommit = mergeBase;
-                }
+                targetCommit = mergeBase;
             }
 
             return targetCommit;

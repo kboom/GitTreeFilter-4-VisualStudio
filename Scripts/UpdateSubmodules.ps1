@@ -8,11 +8,19 @@ git submodule foreach git reset --hard origin/main
 $TestResourcesDir = Join-Path $PSScriptRoot "../TestResources"
 
 Push-Location (Join-Path $TestResourcesDir "TestRepository")
+git branch -D feature
+git fetch origin feature
 git checkout feature
-git reset --hard origin/feature
 Pop-Location
 
 Push-Location (Join-Path $TestResourcesDir "TestRepository2")
+git branch -D feature1
+git fetch origin feature1
 git checkout feature1
-git reset --hard origin/feature1
+Pop-Location
+
+Push-Location (Join-Path $TestResourcesDir "TestRepository2")
+git branch -D feature2
+git fetch origin feature2
+git checkout feature2
 Pop-Location

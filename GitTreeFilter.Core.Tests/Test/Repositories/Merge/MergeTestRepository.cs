@@ -20,6 +20,7 @@ namespace GitTreeFilter.Core.Tests.Test.Repositories.Merge
         public GitSolution Solution => new(Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../../../../TestResources/TestRepository2")));
 
         public IReadOnlyList<GitCommitObject> CommitObjects => Array.AsReadOnly(new GitCommitObject[] {
+            new ("c2d4b19708e65e20d9a86d11dd3c3a2aa28b8645", "Added class5 on main"),
             new ("aa72505691ac8ea4bb3ef57c2bff6fa980a61a8d", "Class4 on main"),
             new ("cd4a16179a6e5e22dda963f49b179a4125e1ef1d", "New commit on feature1 after merge of main"),
             new ("c2d40f96632bf782777c682a4aa525dd5e7db4df", "Merge branch 'main' into feature1"),
