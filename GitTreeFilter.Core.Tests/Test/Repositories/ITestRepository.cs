@@ -15,6 +15,7 @@ public interface ITestRepository
 
     /// <summary>
     /// All unique commit objects in the repository which belong to all known branches.
+    /// These are ordered by date, with the most recent commit first, regardless of a branch they are on.
     /// </summary>
     IReadOnlyList<GitCommitObject> CommitObjects { get; }
 
@@ -43,6 +44,9 @@ public interface ITestRepository
 
 public static class ITestRepositoryExt
 {
+    public static GitCommit CommitBySha(this ITestRepository repository, string name) =>
+        repository.AllCommits.First(x => string.Equals(name, x.Reference.Sha, System.StringComparison.Ordinal));
+
     public static GitCommit CommitByMessage(this ITestRepository repository, string name) =>
         repository.AllCommits.First(x => string.Equals(name, x.ShortMessage, System.StringComparison.Ordinal));
 

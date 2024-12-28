@@ -1,11 +1,11 @@
 [submodule "TestRepository"]
 	path = TestResources/TestRepository
 	url = https://github.com/kboom/GitTreeFilter-4-VisualStudio-Test-Repository
-	update = rebase
+	update = checkout
 	branch = main
 
 [submodule "TestResources/TestRepository2"]
 	path = TestResources/TestRepository2
 	url = https://github.com/kboom/GitTreeFilter-4-VisualStudio-Test-Repository-2
-	update = rebase
+	update = checkout
 	branch = main

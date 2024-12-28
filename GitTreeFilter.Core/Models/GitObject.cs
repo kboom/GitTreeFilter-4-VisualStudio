@@ -120,31 +120,31 @@ namespace GitTreeFilter.Core.Models
 
     public class GitBranch : GitReference<GitCommitObject>
     {
-        public GitBranch(GitBranch source) : this(source.Reference, source._shortName)
+        public GitBranch(GitBranch source) : this(source.Reference, source._branchName)
         {
 
         }
 
-        public GitBranch(GitCommitObject target, string shortName) : base(target)
+        public GitBranch(GitCommitObject target, string branchName) : base(target)
         {
             if (target is null)
             {
                 throw new ArgumentNullException(nameof(target));
             }
 
-            if (string.IsNullOrEmpty(shortName))
+            if (string.IsNullOrEmpty(branchName))
             {
-                throw new ArgumentException("Cannot be null or empty string", nameof(shortName));
+                throw new ArgumentException("Cannot be null or empty string", nameof(branchName));
             }
 
-            _shortName = shortName;
+            _branchName = branchName;
         }
 
-        public override string FriendlyName => _shortName;
+        public override string FriendlyName => _branchName;
 
         public override GitReference<GitCommitObject> Clone() => new GitBranch(this);
 
-        private readonly string _shortName;
+        private readonly string _branchName;
     }
 
     public class GitTag : GitReference<GitCommitObject>

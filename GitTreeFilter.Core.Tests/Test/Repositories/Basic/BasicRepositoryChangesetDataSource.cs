@@ -5,7 +5,7 @@ namespace GitTreeFilter.Core.Tests.Test.Repositories.Basic
 {
     internal class BasicRepositoryChangesetDataSourceAttribute : AbstractChangesetDataSource
     {
-        private readonly static ITestRepository Repository = TestRepositories.Basic;
+        public override ITestRepository Repository => TestRepositories.Basic;
 
         public override IReadOnlyList<ChangesetDescriptor> GetDescriptors() => new List<ChangesetDescriptor>
         {
@@ -16,7 +16,6 @@ namespace GitTreeFilter.Core.Tests.Test.Repositories.Basic
                     TestName = "All changes in HEAD",
                     ReferenceObject = Repository.HeadCommits.Last()
                 },
-                Repository = Repository,
                 FilesInChangeset = new string[]
                 {
                     "Class1.cs",
@@ -32,7 +31,6 @@ namespace GitTreeFilter.Core.Tests.Test.Repositories.Basic
                     TestName = "Commit before current in HEAD",
                     ReferenceObject = Repository.CommitByMessage("Added Class3.cs")
                 },
-                Repository = Repository,
                 FilesInChangeset = new string[]
                 {
                     "FeatureClass.cs"
@@ -45,7 +43,6 @@ namespace GitTreeFilter.Core.Tests.Test.Repositories.Basic
                     TestName = "Flattening added and removed classes",
                     ReferenceObject = Repository.CommitByMessage("Added Class2")
                 },
-                Repository = Repository,
                 FilesInChangeset = new string[]
                 {
                     "Class3.cs",
@@ -60,7 +57,6 @@ namespace GitTreeFilter.Core.Tests.Test.Repositories.Basic
                     ReferenceObject = Repository.CommitByMessage("Added Class4.cs"),
                     PinToMergeHead = false
                 },
-                Repository = Repository,
                 FilesInChangeset = new string[]
                 {
                     "FeatureClass.cs"
@@ -74,7 +70,6 @@ namespace GitTreeFilter.Core.Tests.Test.Repositories.Basic
                     ReferenceObject = Repository.CommitByMessage("Added Class4.cs"),
                     PinToMergeHead = true
                 },
-                Repository = Repository,
                 FilesInChangeset = new string[]
                 {
                     "FeatureClass.cs"
