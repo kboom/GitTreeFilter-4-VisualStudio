@@ -19,35 +19,51 @@ public sealed class MergeTestRepository : ITestRepository
     public GitSolution Solution => new(Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../../../../TestResources/TestRepository2")));
 
     public IReadOnlyList<GitCommitObject> CommitObjects => Array.AsReadOnly(new GitCommitObject[] {
-        new ("bbed6fbcdaa4aa04e12e3b22740dbc8753acaaf4", "Changed: [MainClass2.cs, MainFolderClass2.cs]\r\n    Added: [MainClass3.cs, MainClass4.cs, MainFolderClass5.cs]"),
-        new ("bb6fdc837541bf49cb4c24cada15611d1bdab6b5", "Changed: [MainClass1.cs]\r\n    Added: [FeatureClass2.cs]"),
-        new ("6214d8928e252a8d90782c061853ebbe35ee6bd2", "Merge branch 'main' into feature"),
-        new ("bca8a805ccf19ae02e69adcda6293f9ad1ec1182", "Changed: [MainClass3.cs]\r\n    Added: [MainFolderClass4.cs]\r\n    Deleted: [MainClass3.cs]"),
-        new ("feab371b66122adfc545c45b7b1e88c2eaa6e365", "Deleted: [MainFolderClass3.cs]"),
-        new ("2df026a86fb4d859595e06d7606ca99253a4a5c7", "Changed: [MainFolderClass1.cs]\r\n    Added: [FeatureClass1.cs]"),
-        new ("cba89dac9e4cbad12ab3595f15b73f1cde01d308", "Changed: [MainClass2.cs]\r\n    Added: [MainClass3.cs, MainFolderClass3.cs]"),
-        new ("a9bed46bb7aa27123326043531ef7228a5b1a257", "Root commit")
+        new (COMMIT_BBED6F, "Changed: [MainClass2.cs, MainFolderClass2.cs] Added: [MainClass3.cs, MainClass4.cs, MainFolderClass5.cs]"),
+        new (COMMIT_BB6FDC, "Changed: [MainClass1.cs] Added: [FeatureClass2.cs]"),
+        new (COMMIT_6214D8, "Merge branch 'main' into feature"),
+        new (COMMIT_BCA8A8, "Changed: [MainClass3.cs] Added: [MainFolderClass4.cs] Deleted: [MainClass3.cs]"),
+        new (COMMIT_FEAB37, "Deleted: [MainFolderClass3.cs]"),
+        new (COMMIT_2DF026, "Changed: [MainFolderClass1.cs] Added: [FeatureClass1.cs]"),
+        new (COMMIT_CBA89D, "Changed: [MainClass2.cs] Added: [MainClass3.cs, MainFolderClass3.cs]"),
+        new (COMMIT_A9BED4, "Root commit")
     });
 
     public IReadOnlyList<GitCommit> AllCommits => Array.AsReadOnly(CommitObjects.Select(x => new GitCommit(x)).ToArray());
 
-    public IReadOnlyList<GitCommit> HeadCommits => AllCommits.Skip(1).ToList();
+    public IReadOnlyList<GitCommit> HeadCommits => ITestRepositoryExt.CommitsBySha(this, new string[] {
+        COMMIT_BB6FDC,
+        COMMIT_6214D8,
+        COMMIT_FEAB37,
+        COMMIT_2DF026,
+        COMMIT_CBA89D,
+        COMMIT_A9BED4
+    });
 
     public IReadOnlyList<GitBranch> Branches => Array.AsReadOnly(new GitBranch[] {
-        new(CommitObjects.ElementAt(1), "feature"),
-        new(CommitObjects.ElementAt(1), "origin/feature"),
-        new(CommitObjects.ElementAt(1), "origin/HEAD"),
-        new(CommitObjects.ElementAt(0), "main"),
-        new(CommitObjects.ElementAt(0), "origin/main"),
+        new(ITestRepositoryExt.CommitBySha(this, COMMIT_BB6FDC).Reference, "feature"),
+        new(ITestRepositoryExt.CommitBySha(this, COMMIT_BBED6F).Reference, "main"),
+        new(ITestRepositoryExt.CommitBySha(this, COMMIT_BB6FDC).Reference, "origin/feature"),
+        new(ITestRepositoryExt.CommitBySha(this, COMMIT_BBED6F).Reference, "origin/HEAD"),
+        new(ITestRepositoryExt.CommitBySha(this, COMMIT_BBED6F).Reference, "origin/main"),
     });
 
     public IReadOnlyList<GitTag> Tags => Array.AsReadOnly(new GitTag[] {
-        new(ITestRepositoryExt.CommitBySha(this, "6214d8928e252a8d90782c061853ebbe35ee6bd2").Reference, "merge"),
-        new(ITestRepositoryExt.CommitBySha(this, "cba89dac9e4cbad12ab3595f15b73f1cde01d308").Reference, "fork"),
+        new GitTag(new GitCommitObject(COMMIT_58C98C, "Add classes on main"), "fork"),
+        new(ITestRepositoryExt.CommitBySha(this, COMMIT_6214D8).Reference, "merge")
     });
-
 
     public string Name => nameof(MergeTestRepository);
 
-    public GitCommit Head => AllCommits[0];
+    public GitCommit Head => ITestRepositoryExt.TipOfBranch(this, "origin/feature");
+
+    private const string COMMIT_BB6FDC = "bb6fdc837541bf49cb4c24cada15611d1bdab6b5";
+    private const string COMMIT_6214D8 = "6214d8928e252a8d90782c061853ebbe35ee6bd2";
+    private const string COMMIT_FEAB37 = "feab371b66122adfc545c45b7b1e88c2eaa6e365";
+    private const string COMMIT_2DF026 = "2df026a86fb4d859595e06d7606ca99253a4a5c7";
+    private const string COMMIT_CBA89D = "cba89dac9e4cbad12ab3595f15b73f1cde01d308";
+    private const string COMMIT_A9BED4 = "a9bed46bb7aa27123326043531ef7228a5b1a257";
+    private const string COMMIT_BBED6F = "bbed6fbcdaa4aa04e12e3b22740dbc8753acaaf4";
+    private const string COMMIT_BCA8A8 = "bca8a805ccf19ae02e69adcda6293f9ad1ec1182";
+    private const string COMMIT_58C98C = "58c98c2aeeab1b4c554de989d9c2c1262eb608d5"; // This commit purposefully does not belong to any branch
 }

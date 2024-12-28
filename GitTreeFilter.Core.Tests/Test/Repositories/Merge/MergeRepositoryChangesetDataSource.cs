@@ -30,23 +30,6 @@ internal class MergeRepositoryChangesetDataSourceAttribute : AbstractChangesetDa
         {
             ComparisonConfig = new TestComparisonConfig()
             {
-                TestName = "All changes in HEAD since fork point by tag",
-                ReferenceObject = Repository.TagByName("fork"),
-            },
-            FilesInChangeset = new string[]
-            {
-                "MainClass1.cs",
-                "MainClass2.cs",
-                "MainFolder\\MainFolderClass1.cs",
-                "Feature\\FeatureClass1.cs",
-                "Feature\\FeatureClass2.cs",
-                "MainFolder\\MainFolderClass4.cs"
-            }
-        },
-        new()
-        {
-            ComparisonConfig = new TestComparisonConfig()
-            {
                 TestName = "All changes in HEAD compared to main",
                 ReferenceObject = Repository.TipOfBranch("origin/main"),
             },
@@ -81,6 +64,27 @@ internal class MergeRepositoryChangesetDataSourceAttribute : AbstractChangesetDa
             FilesInChangeset = new string[]
             {
                 "MainClass1.cs",
+                "Feature\\FeatureClass2.cs"
+            }
+        },
+        new()
+        {
+            ComparisonConfig = new TestComparisonConfig()
+            {
+                TestName = "Changes to tagged commit no longer in history",
+                ReferenceObject = Repository.TagByName("fork"),
+            },
+            // This correctly brings up the entire worktree
+            FilesInChangeset = new string[]
+            {
+                "README.md",
+                "GitTreeFilter-testrepo-2.sln",
+                "MainClass1.cs",
+                "MainClass2.cs",
+                "MainFolder\\MainFolderClass1.cs",
+                "MainFolder\\MainFolderClass2.cs",
+                "MainFolder\\MainFolderClass4.cs",
+                "Feature\\FeatureClass1.cs",
                 "Feature\\FeatureClass2.cs"
             }
         },

@@ -55,4 +55,7 @@ public static class ITestRepositoryExt
 
     public static GitTag TagByName(this ITestRepository repository, string name) =>
         repository.Tags.First(x => string.Equals(name, x.FriendlyName, System.StringComparison.Ordinal));
+
+    public static IReadOnlyList<GitCommit> CommitsBySha(this ITestRepository repository, params string[] commitsSha) =>
+        repository.CommitObjects.Where(x => commitsSha.Contains(x.Sha)).Select(x => new GitCommit(x)).ToList();
 }

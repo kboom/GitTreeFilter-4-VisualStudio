@@ -47,7 +47,7 @@ namespace GitTreeFilter.Core.Tests
 
             // then
             recentCommits.Should()
-                .Equal(TestRepositories.Basic.HeadCommits);
+                .Equal(testRepository.HeadCommits);
         }
 
         [DataTestMethod]
@@ -64,7 +64,7 @@ namespace GitTreeFilter.Core.Tests
             recentCommits
                 .Select(x => x.ShortMessage)
                 .Should()
-                .Equal(TestRepositories.Basic.HeadCommits.Select(x => x.ShortMessage));
+                .Equal(testRepository.HeadCommits.Select(x => x.ShortMessage));
         }
 
         [DataTestMethod]
