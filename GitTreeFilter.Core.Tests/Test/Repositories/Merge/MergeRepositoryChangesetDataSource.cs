@@ -13,8 +13,25 @@ internal class MergeRepositoryChangesetDataSourceAttribute : AbstractChangesetDa
         {
             ComparisonConfig = new TestComparisonConfig()
             {
-                TestName = "All changes in HEAD since fork point",
+                TestName = "All changes in HEAD since fork point by commit",
                 ReferenceObject = Repository.CommitBySha("cba89dac9e4cbad12ab3595f15b73f1cde01d308"),
+            },
+            FilesInChangeset = new string[]
+            {
+                "MainClass1.cs",
+                "MainClass2.cs",
+                "MainFolder\\MainFolderClass1.cs",
+                "Feature\\FeatureClass1.cs",
+                "Feature\\FeatureClass2.cs",
+                "MainFolder\\MainFolderClass4.cs"
+            }
+        },
+        new()
+        {
+            ComparisonConfig = new TestComparisonConfig()
+            {
+                TestName = "All changes in HEAD since fork point by tag",
+                ReferenceObject = Repository.TagByName("fork"),
             },
             FilesInChangeset = new string[]
             {
@@ -45,8 +62,21 @@ internal class MergeRepositoryChangesetDataSourceAttribute : AbstractChangesetDa
         {
             ComparisonConfig = new TestComparisonConfig()
             {
-                TestName = "Changes since last merge",
+                TestName = "Changes since last merge by commit",
                 ReferenceObject = Repository.CommitByMessage("Merge branch 'main' into feature"),
+            },
+            FilesInChangeset = new string[]
+            {
+                "MainClass1.cs",
+                "Feature\\FeatureClass2.cs"
+            }
+        },
+        new()
+        {
+            ComparisonConfig = new TestComparisonConfig()
+            {
+                TestName = "Changes since last merge by tag",
+                ReferenceObject = Repository.TagByName("merge"),
             },
             FilesInChangeset = new string[]
             {

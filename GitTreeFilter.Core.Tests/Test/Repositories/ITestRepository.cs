@@ -52,4 +52,7 @@ public static class ITestRepositoryExt
 
     public static GitCommit TipOfBranch(this ITestRepository repository, string name) =>
         repository.Branches.First(x => string.Equals(name, x.FriendlyName, System.StringComparison.Ordinal)).Tip();
+
+    public static GitTag TagByName(this ITestRepository repository, string name) =>
+        repository.Tags.First(x => string.Equals(name, x.FriendlyName, System.StringComparison.Ordinal));
 }

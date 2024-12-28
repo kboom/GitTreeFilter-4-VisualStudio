@@ -333,6 +333,8 @@ namespace GitTreeFilter.Core
             var targetCommit = RepositoryExtensions.GetTargetCommit(repository, ComparisonConfig.ReferenceObject);
             
             // This is necessary if an only if there are modified files which already exist in your local worktree.
+            // The new files added in main since we branched off, are going to be missing in local sources and therefore ignored anyway.
+            // Likewise, we don't display deletions.
             Commit mergeBase = repository.ObjectDatabase.FindMergeBase(headCommit, targetCommit);
             if (mergeBase != null)
             {
