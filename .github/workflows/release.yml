@@ -21,6 +21,8 @@ jobs:
     with:
       version: ${{ github.ref_name }}
   release:
+    needs:
+      - build
     runs-on: windows-2022
     defaults:
       run:
@@ -40,28 +42,20 @@ jobs:
         draft: false
         prerelease: true
 
-    - name: Download GitTreeFilter.vsix artifact
-      id: download-vsix-artifact
-      uses: dawidd6/action-download-artifact@v7
+    - name: Download VSIX job artifact
+      uses: actions/download-artifact@v4
       with:
-        workflow: build
-        workflow_conclusion: success
         name: GitTreeFilter.vsix
+        github-token: ${{ github.token }}
+        repository: ${{ github.repository }}
+        run-id: ${{ needs.build.outputs.run_id }}
 
-    - name: Download GitTreeFilter.vsix artifact
-      id: download-vs-publish-artifact
-      uses: dawidd6/action-download-artifact@v7
-      with:
-        workflow: build
-        workflow_conclusion: success
-        name: vs-publish.json
-
-    - name: Upload VSIX Asset
+    - name: Upload VSIX as release asset
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: GitTreeFilter.vsix
         asset_name: GitTreeFilter-${{ github.ref_name }}-2022.vsix
         asset_content_type: application/zip
