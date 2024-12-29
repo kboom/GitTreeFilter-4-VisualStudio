@@ -3,6 +3,9 @@ name: Build
 on:
   workflow_call:
     inputs:
+      commit:
+        required: true
+        type: string
       version:
         required: false
         type: string
@@ -22,10 +25,10 @@ jobs:
     outputs:
       run_id: ${{ job.status.run_id }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
+        ref: ${{ inputs.commit }}
         submodules: 'true'
-        fetch-depth: 0
 
     - name: Prepare test submodules
       shell: pwsh

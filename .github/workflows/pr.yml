@@ -8,3 +8,5 @@ jobs:
     uses: ./.github/workflows/_build.yml
     permissions:
       checks: write
+    with:
+      commit: ${{ github.event.pull_request.base.ref }}

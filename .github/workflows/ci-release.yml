@@ -61,6 +61,7 @@ jobs:
     permissions:
       checks: write
     with:
+      commit: ${{ github.event.pull_request.merge_commit_sha }}
       version: ${{ needs.version.outputs.version }}
 
   release:
@@ -72,6 +73,11 @@ jobs:
       run:
         working-directory: ${{ github.workspace }}
     steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.merge_commit_sha }}
+        fetch-depth: '0'
+
     - name: Set up Git actions user
       uses: fregante/setup-git-user@v1
 
