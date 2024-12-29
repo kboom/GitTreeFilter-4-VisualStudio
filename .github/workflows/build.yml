@@ -53,13 +53,8 @@ jobs:
       run: msbuild ${{env.SOLUTION_FILE_PATH}} /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m
       shell: powershell
 
-    - name: Run vstests
-      uses: microsoft/vstest-action@v1.0.0
-      with:
-        testAssembly: GitTreeFilter.Core.Tests.dll
-        searchFolder: ${{ github.workspace }}\GitTreeFilter.Core.Tests\bin\Release\net472\
-        runInParallel: true
-        otherConsoleOptions: /Logger:trx
+    - name: Test
+      run: msbuild ${{env.SOLUTION_FILE_PATH}} /p:Configuration=Debug /t:Test /p:TestResultsDirectory=TestResults
 
     - name: Test Report
       uses: dorny/test-reporter@v1
