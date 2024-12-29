@@ -19,18 +19,14 @@ $TestResourcesDir = Join-Path $PSScriptRoot "../TestResources"
 Push-Location (Join-Path $TestResourcesDir "TestRepository")
 git rebase --abort
 git fetch origin feature:feature --force
-git branch -D feature
-git checkout feature --force
-git reset --hard origin/feature
+git checkout feature
 git clean -fdx
 Pop-Location
 
 Push-Location (Join-Path $TestResourcesDir "TestRepository2")
 git rebase --abort
 git fetch origin feature:feature --force
-git branch -D feature
-git checkout feature --force
-git reset --hard origin/feature
+git checkout feature
 git clean -fdx
 Pop-Location
 
