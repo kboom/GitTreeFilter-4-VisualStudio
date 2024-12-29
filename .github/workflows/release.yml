@@ -4,7 +4,6 @@ on:
   push:
     tags:
     - 'v*'
-  workflow_dispatch:
 
 env:
   SOLUTION_FILE_PATH: .
@@ -15,82 +14,22 @@ permissions:
  checks: write
 
 jobs:
-  build-test-and-release-vs22:
+  build:
+    uses: ./.github/workflows/_build.yml
+    permissions:
+      checks: write
+    with:
+      version: ${{ github.ref_name }}
+  release:
+    needs:
+      - build
     runs-on: windows-2022
     defaults:
       run:
         working-directory: ${{ github.workspace }}
-    env:
-      VsixManifestPath: .\GitTreeFilter\source.extension.vsixmanifest
-
     steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: 'true'
-        fetch-depth: 0
-
-    - name: Track main branches in submodules
-      run: |
-        git submodule foreach git checkout main
-
-    - uses: actions/cache@v2
-      with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.config') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget-
-
-    - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1
-      with:
-        vs-version: '[17.0, )'
-
-    - name: Setup VSTest
-      uses: darenm/Setup-VSTest@v1
-
-    - name: Setup NuGet
-      uses: NuGet/setup-nuget@v1.0.5
-
-    - name: Restore NuGet packages
-      run: nuget restore ${{env.SOLUTION_FILE_PATH}}
-
-    - name: Calculate next semantic version Git tag (vsix version)
-      id: vsix_version
-      uses: ./.github/actions/next-git-tag
-
-    - name: Set VSIX version for 2022
-      uses: cezarypiatek/VsixVersionAction@1.0
-      with:
-        version: ${{ steps.vsix_version.outputs.next-tag }}
-        vsix-manifest-file: .\GitTreeFilter\source.extension.vsixmanifest
-
-    - name: Build
-      run: |
-        msbuild ${{env.SOLUTION_FILE_PATH}} /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m
-      shell: powershell
-
-    - name: Test
-      run: dotnet test ${{env.SOLUTION_FILE_PATH}} --logger "trx;LogFileName=test-results.trx"
-
-    - name: Test Report
-      uses: dorny/test-reporter@v1
-      if: always()
-      with:
-        name: Test results
-        path: "**/*.trx"                            
-        reporter: dotnet-trx
-        fail-on-error: true
-
     - name: Set up Git actions user
       uses: fregante/setup-git-user@v1
-
-    - name: Create and push Git tag release
-      run: |
-        git status
-        git submodule deinit .
-        git tag ${{ steps.vsix_version.outputs.next-tag }}
-        git push
-        git push --tags
 
     - name: Create GitHub Release
       id: create_release
@@ -98,24 +37,25 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ steps.vsix_version.outputs.next-tag }}
-        release_name: Release ${{ steps.vsix_version.outputs.next-tag }}
+        tag_name: ${{ github.ref_name }}
+        release_name: Release ${{ github.ref_name }}
         draft: false
-        prerelease: false
+        prerelease: true
 
-    - name: Upload GitHub Release 2022 Asset
+    - name: Download VSIX job artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: GitTreeFilter.vsix
+        github-token: ${{ github.token }}
+        repository: ${{ github.repository }}
+        run-id: ${{ needs.build.outputs.run_id }}
+
+    - name: Upload VSIX as release asset
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: .\GitTreeFilter\bin\Release\GitTreeFilter.vsix
-        asset_name: GitTreeFilter-${{ steps.vsix_version.outputs.next-tag }}-2022.vsix
+        asset_path: GitTreeFilter.vsix
+        asset_name: GitTreeFilter-${{ github.ref_name }}-2022.vsix
         asset_content_type: application/zip
-
-    - name: Publish 2022 extension to Marketplace
-      uses: cezarypiatek/VsixPublisherAction@0.2
-      with:
-        extension-file: '.\GitTreeFilter\bin\Release\GitTreeFilter.vsix'
-        publish-manifest-file: '.\GitTreeFilter\vs-publish.json'
-        personal-access-code: ${{ secrets.VS_PUBLISHER_ACCESS_TOKEN }}

@@ -1,0 +1,45 @@
+name: PublishRelease
+
+on:
+  release:
+    types: [published]
+
+env:
+  SOURCES_DIR_NAME: GitTreeFilter-4-VisualStudio-${{ github.event.release.tag_name }} # remove
+  VSIX_FILE_NAME: GitTreeFilter-${{ github.event.release.tag_name }}-2022.vsix
+  SOURCES_FILE_NAME: Sources.tar.gz
+
+jobs:
+  publish:
+    if: github.event.release.draft == false && github.event.release.prerelease == false
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up Git actions user
+        uses: fregante/setup-git-user@v1
+
+      - name: Download vsix asset
+        uses: dsaltares/fetch-gh-release-asset@master
+        with:
+          version: ${{ github.event.release.id }}
+          file: ${{ env.VSIX_FILE_NAME }}
+          target: ${{ env.VSIX_FILE_NAME }}
+          token:  ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download sources asset
+        uses: dsaltares/fetch-gh-release-asset@master
+        with:
+          version: ${{ github.event.release.id }}
+          file: ${{ github.event.release.tarball_url}}
+          target: ${{ env.SOURCES_FILE_NAME }}
+          token:  ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract sources
+        run: tar -xzf ${{ env.SOURCES_FILE_NAME }} --strip-components=1
+
+      - name: Publish extension to Marketplace
+        uses: cezarypiatek/VsixPublisherAction@0.2
+        with:
+          extension-file: ${{ env.VSIX_FILE_NAME }}
+          publish-manifest-file: '.\GitTreeFilter\vs-publish.json'
+          personal-access-code: ${{ secrets.VS_PUBLISHER_ACCESS_TOKEN }}
