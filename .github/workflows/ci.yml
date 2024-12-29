@@ -28,7 +28,7 @@ jobs:
         ref: ${{ github.event.pull_request.merge_commit_sha }}
         fetch-depth: '0'
 
-    - name: Create main
+    - name: Fetch ${{ github.event.pull_request.base.ref }}
       run: |
         git branch ${{ github.event.pull_request.base.ref }} origin/${{ github.event.pull_request.base.ref }}
         git branch
