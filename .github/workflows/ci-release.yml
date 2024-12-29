@@ -62,4 +62,45 @@ jobs:
       checks: write
     with:
       version: ${{ needs.version.outputs.version }}
+
+  release:
+    needs:
+      - version
+      - build
+    runs-on: windows-2022
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    steps:
+    - name: Set up Git actions user
+      uses: fregante/setup-git-user@v1
+
+    - name: Create GitHub Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref_name }}
+        release_name: Release ${{ github.ref_name }}
+        draft: false
+        prerelease: true
+
+    - name: Download VSIX job artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: GitTreeFilter.vsix
+        github-token: ${{ github.token }}
+        repository: ${{ github.repository }}
+        run-id: ${{ needs.build.outputs.run_id }}
+
+    - name: Upload VSIX as release asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: GitTreeFilter-${{ needs.version.outputs.version }}.vsix
+        asset_name: GitTreeFilter-${{ needs.version.outputs.version }}.vsix
+        asset_content_type: application/zip
   
