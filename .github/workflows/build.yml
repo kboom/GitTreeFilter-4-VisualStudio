@@ -56,7 +56,7 @@ jobs:
       shell: powershell
 
     - name: Test
-      run: dotnet test --logger "trx;LogFileName=test-results.trx"
+      run: dotnet test ${{env.SOLUTION_FILE_PATH}} --logger "trx;LogFileName=${{ env.TEST_RESULTS_DIR }}\tests.trx"
 
     - name: Test Report
       uses: dorny/test-reporter@v1
