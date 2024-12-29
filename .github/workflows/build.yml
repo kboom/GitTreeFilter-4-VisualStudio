@@ -25,9 +25,10 @@ jobs:
         submodules: 'true'
         fetch-depth: 0
 
-    - name: Track main branches in submodules
+    - name: Prepare test submodules
+      shell: pwsh
       run: |
-        git submodule foreach git checkout main
+        ./Scripts/UpdateSubmodules.ps1
 
     - uses: actions/cache@v2
       with:
