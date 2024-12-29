@@ -97,5 +97,5 @@ jobs:
     - name: Upload GitTreeFilter.vsix
       uses: actions/upload-artifact@v4
       with:
-        name: GitTreeFilter.vsix
+        name: GitTreeFilter-${{ env.version }}.vsix
         path: '.\GitTreeFilter\bin\Release\GitTreeFilter.vsix'
