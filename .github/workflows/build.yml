@@ -8,6 +8,7 @@ on:
 env:
   SOLUTION_FILE_PATH: .
   DEFAULT_BRANCH: main
+  TEST_RESULTS_DIR: ${RUNNER_TEMP}/TestResults
 
 jobs:
   build:
@@ -54,13 +55,13 @@ jobs:
       shell: powershell
 
     - name: Test
-      run: msbuild ${{env.SOLUTION_FILE_PATH}} /p:Configuration=Debug /t:Test /p:TestResultsDirectory=TestResults
+      run: dotnet test ${{env.SOLUTION_FILE_PATH}}  --logger "trx;LogFileName=${TEST_RESULTS_DIR}/tests.trx"
 
     - name: Test Report
       uses: dorny/test-reporter@v1
       if: always()
       with:
         name: Test results
-        path: "TestResults/*.trx"                            
+        path: "${TEST_RESULTS_DIR}/*.trx"                            
         reporter: dotnet-trx
         fail-on-error: true
