@@ -1,10 +1,7 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Execution;
-using GitTreeFilter.Core.Models;
 using GitTreeFilter.Core.Tests.Test.Repositories;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Linq;
 
 namespace GitTreeFilter.Core.Tests
 {
@@ -52,15 +49,12 @@ namespace GitTreeFilter.Core.Tests
             using (new AssertionScope())
             {
                 tags.Should().HaveCount(testRepository.Tags.Count);
-                tags.Should().SatisfyRespectively(testRepository.Tags.Select((expectedTag, index) => new Action<GitTag>(tag =>
-                {
-                    using (new AssertionScope($"Evaluating expected tag '{expectedTag.FriendlyName}' at index {index}"))
-                    {
-                        tag.FriendlyName.Should().Be(expectedTag.FriendlyName);
-                        tag.Reference.Sha.Should().Be(expectedTag.Reference.Sha);
-                        tag.Reference.ShortMessage.Should().Be(expectedTag.Reference.ShortMessage);
-                    }
-                })));
+
+                tags.Should().BeEquivalentTo(testRepository.Tags, options => options
+                    .Including(branch => branch.FriendlyName)
+                    .Including(branch => branch.Reference.Sha)
+                    .Including(branch => branch.Reference.ShortMessage)
+                    .RespectingRuntimeTypes());
             }
         }
 

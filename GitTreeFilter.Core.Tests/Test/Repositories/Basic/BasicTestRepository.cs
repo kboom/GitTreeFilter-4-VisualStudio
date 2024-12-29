@@ -34,11 +34,11 @@ public sealed class BasicTestRepository : ITestRepository
     public IReadOnlyList<GitCommit> HeadCommits => Array.AsReadOnly(CommitObjects.Except(new List<GitCommitObject>() { CommitObjects[1] }).Select(x => new GitCommit(x)).ToArray());
 
     public IReadOnlyList<GitBranch> Branches => Array.AsReadOnly(new GitBranch[] {
-        new(ITestRepositoryExt.CommitBySha(this, COMMIT_014F5B).Reference, "feature"),
         new(ITestRepositoryExt.CommitBySha(this, COMMIT_E0EE46).Reference, "main"),
-        new(ITestRepositoryExt.CommitBySha(this, COMMIT_014F5B).Reference, "origin/feature"),
+        new(ITestRepositoryExt.CommitBySha(this, COMMIT_014F5B).Reference, "feature"),
         new(ITestRepositoryExt.CommitBySha(this, COMMIT_E0EE46).Reference, "origin/HEAD"),
         new(ITestRepositoryExt.CommitBySha(this, COMMIT_E0EE46).Reference, "origin/main"),
+        new(ITestRepositoryExt.CommitBySha(this, COMMIT_014F5B).Reference, "origin/feature")
     });
 
     public IReadOnlyList<GitTag> Tags => Array.AsReadOnly(new GitTag[] {
