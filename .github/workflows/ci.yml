@@ -5,6 +5,7 @@ on:
     types:
       - closed
     branches:
+      - main
       - release/*
 env:
   SOLUTION_FILE_PATH: .
@@ -15,7 +16,7 @@ jobs:
     permissions:
       checks: write
   autotag:
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.base.ref, 'release/')
     needs:
       - build
     runs-on: ubuntu-22.04
