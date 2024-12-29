@@ -25,11 +25,6 @@ jobs:
         submodules: 'true'
         fetch-depth: 0
 
-    - name: Setup PowerShell
-      uses: actions/setup-powershell@v2
-      with:
-        powershell-version: '7.x'
-
     - name: Prepare test submodules
       shell: pwsh
       run: |
