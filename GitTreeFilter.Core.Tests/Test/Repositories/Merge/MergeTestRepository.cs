@@ -41,11 +41,11 @@ public sealed class MergeTestRepository : ITestRepository
     });
 
     public IReadOnlyList<GitBranch> Branches => Array.AsReadOnly(new GitBranch[] {
-        new(ITestRepositoryExt.CommitBySha(this, COMMIT_BB6FDC).Reference, "feature"),
         new(ITestRepositoryExt.CommitBySha(this, COMMIT_BBED6F).Reference, "main"),
-        new(ITestRepositoryExt.CommitBySha(this, COMMIT_BB6FDC).Reference, "origin/feature"),
+        new(ITestRepositoryExt.CommitBySha(this, COMMIT_BB6FDC).Reference, "feature"),
         new(ITestRepositoryExt.CommitBySha(this, COMMIT_BBED6F).Reference, "origin/HEAD"),
         new(ITestRepositoryExt.CommitBySha(this, COMMIT_BBED6F).Reference, "origin/main"),
+        new(ITestRepositoryExt.CommitBySha(this, COMMIT_BB6FDC).Reference, "origin/feature")
     });
 
     public IReadOnlyList<GitTag> Tags => Array.AsReadOnly(new GitTag[] {

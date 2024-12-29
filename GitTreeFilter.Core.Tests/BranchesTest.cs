@@ -1,10 +1,7 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Execution;
-using GitTreeFilter.Core.Models;
 using GitTreeFilter.Core.Tests.Test.Repositories;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Linq;
 
 namespace GitTreeFilter.Core.Tests
 {
@@ -52,15 +49,12 @@ namespace GitTreeFilter.Core.Tests
             using (new AssertionScope())
             {
                 branches.Should().HaveCount(testRepository.Branches.Count);
-                branches.Should().SatisfyRespectively(testRepository.Branches.Select((expectedBranch, index) => new Action<GitBranch>(branch =>
-                {
-                    using (new AssertionScope($"Evaluating expected branch '{expectedBranch.FriendlyName}' at index {index}"))
-                    {
-                        branch.FriendlyName.Should().Be(expectedBranch.FriendlyName);
-                        branch.Reference.Sha.Should().Be(expectedBranch.Reference.Sha, because: $"Branch {expectedBranch.FriendlyName} should have given SHA");
-                        branch.Reference.ShortMessage.Should().Be(expectedBranch.Reference.ShortMessage, because: $"Branch {expectedBranch.FriendlyName} should have given short message");
-                    }
-                })));
+
+                branches.Should().BeEquivalentTo(testRepository.Branches, options => options
+                    .Including(branch => branch.FriendlyName)
+                    .Including(branch => branch.Reference.Sha)
+                    .Including(branch => branch.Reference.ShortMessage)
+                    .RespectingRuntimeTypes());
             }
         }
     }

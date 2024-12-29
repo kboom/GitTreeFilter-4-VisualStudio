@@ -24,9 +24,10 @@ jobs:
         submodules: 'true'
         fetch-depth: 0
 
-    - name: Track main branches in submodules
+    - name: Prepare test submodules
+      shell: pwsh
       run: |
-        git submodule foreach git checkout main
+        ./Scripts/UpdateSubmodules.ps1
 
     - uses: actions/cache@v2
       with:
@@ -53,19 +54,14 @@ jobs:
       run: msbuild ${{env.SOLUTION_FILE_PATH}} /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m
       shell: powershell
 
-    - name: Run vstests
-      uses: microsoft/vstest-action@v1.0.0
-      with:
-        testAssembly: GitTreeFilter.Core.Tests.dll
-        searchFolder: ${{ github.workspace }}\GitTreeFilter.Core.Tests\bin\Release\net472\
-        runInParallel: true
-        otherConsoleOptions: /Logger:trx
+    - name: Test
+      run: dotnet test ${{env.SOLUTION_FILE_PATH}} --logger "trx;LogFileName=test-results.trx"
 
     - name: Test Report
       uses: dorny/test-reporter@v1
       if: always()
       with:
         name: Test results
-        path: "TestResults/*.trx"                            
+        path: "**/*.trx"                            
         reporter: dotnet-trx
         fail-on-error: true
