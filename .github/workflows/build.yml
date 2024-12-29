@@ -7,7 +7,6 @@ on:
 
 env:
   SOLUTION_FILE_PATH: .
-  TEST_RESULTS_DIR: "${{ github.workspace }}\\TestResults"
   DEFAULT_BRANCH: main
 
 jobs:
@@ -56,7 +55,7 @@ jobs:
       shell: powershell
 
     - name: Test
-      run: dotnet test ${{env.SOLUTION_FILE_PATH}} --logger "trx;LogFileName=${{ env.TEST_RESULTS_DIR }}\tests.trx"
+      run: dotnet test ${{env.SOLUTION_FILE_PATH}} --logger "trx;LogFileName=test-results.trx"
 
     - name: Test Report
       uses: dorny/test-reporter@v1
