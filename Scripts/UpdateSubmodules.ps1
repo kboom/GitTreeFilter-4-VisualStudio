@@ -18,15 +18,15 @@ $TestResourcesDir = Join-Path $PSScriptRoot "../TestResources"
 # Reset and update specific repositories
 Push-Location (Join-Path $TestResourcesDir "TestRepository")
 git rebase --abort
-git fetch origin feature:feature --force
-git checkout feature
+git fetch origin feature
+git checkout -B feature origin/feature
 git clean -fdx
 Pop-Location
 
 Push-Location (Join-Path $TestResourcesDir "TestRepository2")
 git rebase --abort
-git fetch origin feature:feature --force
-git checkout feature
+git fetch origin feature
+git checkout -B feature origin/feature
 git clean -fdx
 Pop-Location
 
