@@ -2,10 +2,7 @@ name: PullRequest
 
 on:
   pull_request:
-env:
-  SOLUTION_FILE_PATH: .
-  DEFAULT_BRANCH: main
 
 jobs:
   call-reusable-workflow:
-    uses: ./.github/workflows/common/build-workflow.yml
+    uses: ./.github/workflows/_build.yml

@@ -14,7 +14,7 @@ env:
 
 jobs:
   call-reusable-workflow:
-    uses: ./.github/workflows/common/build-workflow.yml
+    uses: ./.github/workflows/_build.yml
   autotag:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-22.04
