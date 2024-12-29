@@ -29,6 +29,12 @@ jobs:
         fetch-depth: '0'
         fetch: '+refs/heads/main:refs/remotes/origin/main +refs/heads/${{ github.event.pull_request.head.ref }}:refs/remotes/origin/${{ github.event.pull_request.head.ref }}'
 
+    - name: Create main
+      run: |
+        git branch main origin/main
+        git branch
+        git branch -r
+
     - name: Bump version and push tag
       uses: anothrNick/github-tag-action@v1
       env:

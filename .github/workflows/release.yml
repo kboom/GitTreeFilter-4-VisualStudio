@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-    - 'v*'
+      - v*
 
 env:
   SOLUTION_FILE_PATH: .
@@ -15,6 +15,7 @@ permissions:
 
 jobs:
   build:
+    if: ${{ github.ref == 'refs/heads/main' }}
     uses: ./.github/workflows/_build.yml
     permissions:
       checks: write
