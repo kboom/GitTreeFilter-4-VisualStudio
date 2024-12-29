@@ -6,6 +6,7 @@ on:
       - closed
     branches:
       - main
+      - release/*
 env:
   SOLUTION_FILE_PATH: .
   DEFAULT_BRANCH: main
@@ -35,9 +36,25 @@ jobs:
         git branch
         git branch -r
 
+    - name: Default version from main branch
+      if: github.event.pull_request.base.ref == 'main'
+      run: |
+        echo "DefaultVersion=0.0.0" >> $GITHUB_ENV
+
+    - name: Extract major version from release branch
+      if: startsWith(github.event.pull_request.base.ref, 'release/')
+      run: |
+        export MajorVersion=$(echo ${GITHUB_REF#refs/heads/release/v} | cut -d/ -f1)
+        export InitialVersion="${MajorVersion}.0.0"
+        echo "InitialVersion=$InitialVersion" >> $GITHUB_ENV
+
     - name: Bump version and push tag
       uses: anothrNick/github-tag-action@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         WITH_V: true
-        PRERELEASE: true
+        TAG_CONTEXT: branch
+        DEFAULT_BRANCH: ${{ github.event.pull_request.base.ref }}
+        INITIAL_VERSION: ${{ env.InitialVersion }}
+        RELEASE_BRANCHES: release/*
+        VERBOSE: true
