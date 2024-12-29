@@ -5,7 +5,6 @@ on:
     types:
       - closed
     branches:
-      - main
       - release/*
 env:
   SOLUTION_FILE_PATH: .
@@ -28,19 +27,13 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.merge_commit_sha }}
         fetch-depth: '0'
-        fetch: '+refs/heads/main:refs/remotes/origin/main +refs/heads/${{ github.event.pull_request.head.ref }}:refs/remotes/origin/${{ github.event.pull_request.head.ref }}'
 
     - name: Create main
       run: |
         git branch main origin/main
         git branch
         git branch -r
-
-    - name: Default version from main branch
-      if: github.event.pull_request.base.ref == 'main'
-      run: |
-        echo "DefaultVersion=0.0.0" >> $GITHUB_ENV
-
+        
     - name: Extract major version from release branch
       if: startsWith(github.event.pull_request.base.ref, 'release/')
       run: |
