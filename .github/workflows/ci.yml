@@ -30,10 +30,10 @@ jobs:
 
     - name: Create main
       run: |
-        git branch main origin/main
+        git branch ${{ github.event.pull_request.base.ref }} origin/${{ github.event.pull_request.base.ref }}
         git branch
         git branch -r
-        
+
     - name: Extract major version from release branch
       if: startsWith(github.event.pull_request.base.ref, 'release/')
       run: |
