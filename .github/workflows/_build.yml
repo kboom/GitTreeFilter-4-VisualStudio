@@ -2,6 +2,10 @@ name: Build
 
 on:
   workflow_call:
+    inputs:
+      version:
+        required: false
+        type: string
 
 env:
   SOLUTION_FILE_PATH: .
@@ -48,6 +52,13 @@ jobs:
     - name: Restore NuGet packages
       run: nuget restore ${{env.SOLUTION_FILE_PATH}}
 
+    - name: Set VSIX version
+      if: inputs.version != ''
+      uses: cezarypiatek/VsixVersionAction@1.0
+      with:
+        version: ${{ inputs.version }}
+        vsix-manifest-file: .\GitTreeFilter\source.extension.vsixmanifest
+
     - name: Build
       run: msbuild ${{env.SOLUTION_FILE_PATH}} /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m
       shell: powershell
@@ -63,3 +74,9 @@ jobs:
         path: "**/*.trx"                            
         reporter: dotnet-trx
         fail-on-error: true
+
+    - name: Upload GitTreeFilter.vsix
+      uses: actions/upload-artifact@v2
+      with:
+        name: GitTreeFilter.vsix
+        path: '.\GitTreeFilter\bin\Release\GitTreeFilter.vsix'
