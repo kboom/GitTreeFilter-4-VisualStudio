@@ -4,7 +4,10 @@ on:
   push:
     branches: [ main ]
   pull_request:
-
+    types:
+      - closed
+    branches:
+      - master
 env:
   SOLUTION_FILE_PATH: .
   DEFAULT_BRANCH: main
@@ -65,3 +68,20 @@ jobs:
         path: "**/*.trx"                            
         reporter: dotnet-trx
         fail-on-error: true
+  autotag:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.merge_commit_sha }}
+        fetch-depth: '0'
+
+    - name: Bump version and push tag
+      uses: anothrNick/github-tag-action@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # if you don't want to set write permissions use a PAT token
+        WITH_V: true
+        PRERELEASE: true
