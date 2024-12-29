@@ -56,13 +56,13 @@ jobs:
       shell: powershell
 
     - name: Test
-      run: dotnet test ${{env.SOLUTION_FILE_PATH}} --logger "trx;LogFileName=${{ env.TEST_RESULTS_DIR }}\tests.trx"
+      run: dotnet test ${{env.SOLUTION_FILE_PATH}} --logger "trx;LogFileName=TestResults/tests.trx"
 
     - name: Test Report
       uses: dorny/test-reporter@v1
       if: always()
       with:
         name: Test results
-        path: "${{ github.workspace }}\\**\\*.trx"                            
+        path: "TestResults/*.trx"
         reporter: dotnet-trx
         fail-on-error: true
