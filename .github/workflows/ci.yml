@@ -9,7 +9,6 @@ on:
       - release/*
 env:
   SOLUTION_FILE_PATH: .
-  DEFAULT_BRANCH: main
 
 jobs:
   build:
@@ -17,7 +16,7 @@ jobs:
     permissions:
       checks: write
   autotag:
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.base.ref, 'release/')
     needs:
       - build
     runs-on: ubuntu-22.04
@@ -28,18 +27,12 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.merge_commit_sha }}
         fetch-depth: '0'
-        fetch: '+refs/heads/main:refs/remotes/origin/main +refs/heads/${{ github.event.pull_request.head.ref }}:refs/remotes/origin/${{ github.event.pull_request.head.ref }}'
 
-    - name: Create main
+    - name: Fetch ${{ github.event.pull_request.base.ref }}
       run: |
-        git branch main origin/main
+        git branch ${{ github.event.pull_request.base.ref }} origin/${{ github.event.pull_request.base.ref }}
         git branch
         git branch -r
-
-    - name: Default version from main branch
-      if: github.event.pull_request.base.ref == 'main'
-      run: |
-        echo "DefaultVersion=0.0.0" >> $GITHUB_ENV
 
     - name: Extract major version from release branch
       if: startsWith(github.event.pull_request.base.ref, 'release/')
