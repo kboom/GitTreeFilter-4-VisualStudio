@@ -53,11 +53,29 @@ jobs:
     - name: Restore NuGet packages
       run: nuget restore ${{env.SOLUTION_FILE_PATH}}
 
+    - name: Get nightly version
+      id: get-nightly-version
+      if: inputs.version == ''
+      uses: anothrNick/github-tag-action@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        WITH_V: true
+        DRY_RUN: true
+        TAG_CONTEXT: repo
+      
+    - name: Determine version
+      shell: powershell
+      run: |
+        if ($env:INPUTS_VERSION -eq "") {
+          echo "version=${{ steps.get-nightly-version.outputs.new_tag }}" >> $env:GITHUB_ENV
+        } else {
+          echo "version=${{ inputs.version }}" >> $env:GITHUB_ENV
+        }
+
     - name: Set VSIX version
-      if: inputs.version != ''
       uses: cezarypiatek/VsixVersionAction@1.0
       with:
-        version: ${{ inputs.version }}
+        version: ${{ env.version }}
         vsix-manifest-file: .\GitTreeFilter\source.extension.vsixmanifest
 
     - name: Build
