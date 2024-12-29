@@ -13,7 +13,7 @@ env:
   DEFAULT_BRANCH: main
 
 jobs:
-  call-reusable-workflow:
+  build:
     uses: ./.github/workflows/_build.yml
     permissions:
       checks: write
