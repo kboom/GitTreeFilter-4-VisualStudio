@@ -25,7 +25,7 @@ internal class ComparisonConfig : IComparisonConfig
 
     public bool OriginRefsOnly => _globalSettings().OriginRefsOnly;
 
-    public bool PinToMergeHead => _sessionSettings().PinToMergeHead;
+    public bool IncludeUnstagedChanges => _sessionSettings().IncludeUnstagedChanges;
 
     private readonly Func<IGlobalSettings> _globalSettings;
     private readonly Func<ISessionSettings> _sessionSettings;

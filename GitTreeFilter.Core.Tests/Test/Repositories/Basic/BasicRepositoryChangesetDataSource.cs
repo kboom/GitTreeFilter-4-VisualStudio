@@ -55,7 +55,7 @@ namespace GitTreeFilter.Core.Tests.Test.Repositories.Basic
                 {
                     TestName = "Commit missing in HEAD with PinToMergeHead OFF",
                     ReferenceObject = Repository.CommitByMessage("Added Class4.cs"),
-                    PinToMergeHead = false
+                    IncludeUnstagedChanges = false
                 },
                 FilesInChangeset = new string[]
                 {
@@ -68,7 +68,7 @@ namespace GitTreeFilter.Core.Tests.Test.Repositories.Basic
                 {
                     TestName = "Commit missing in HEAD with PinToMergeHead ON",
                     ReferenceObject = Repository.CommitByMessage("Added Class4.cs"),
-                    PinToMergeHead = true
+                    IncludeUnstagedChanges = true
                 },
                 FilesInChangeset = new string[]
                 {

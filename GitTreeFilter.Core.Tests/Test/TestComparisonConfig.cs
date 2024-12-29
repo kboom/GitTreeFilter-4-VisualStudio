@@ -8,7 +8,7 @@ public class TestComparisonConfig : IComparisonConfig
 
     public bool OriginRefsOnly { get; set; }
 
-    public bool PinToMergeHead { get; set; }
+    public bool IncludeUnstagedChanges { get; set; }
 
     public string TestName { get; set; }
 }

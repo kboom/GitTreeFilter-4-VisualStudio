@@ -9,7 +9,7 @@
 ///     public interface ISessionSettings
 public interface ISessionSettings
 {
-    bool PinToMergeHead { get; }
+    bool IncludeUnstagedChanges { get; }
 }
 
 
@@ -19,7 +19,7 @@ public sealed class SessionSettings : ISessionSettings
 
     private SessionSettings(ISessionSettings settings)
     {
-        PinToMergeHead = settings.PinToMergeHead;
+        IncludeUnstagedChanges = settings.IncludeUnstagedChanges;
     }
 
     private SessionSettings()
@@ -27,15 +27,15 @@ public sealed class SessionSettings : ISessionSettings
 
     }
 
-    public bool PinToMergeHead { get; private set; }
+    public bool IncludeUnstagedChanges { get; private set; }
 
-    public static SessionSettings CreateFrom(ISessionSettings sessionSettings) => new SessionSettings(sessionSettings);
+    public static SessionSettings CreateFrom(ISessionSettings sessionSettings) => new(sessionSettings);
 
-    public SessionSettings WithPinToMergeHead(bool value)
+    public SessionSettings WithIncludeUnstagedChanges(bool value)
     {
         return new SessionSettings(this)
         {
-            PinToMergeHead = value
+            IncludeUnstagedChanges = value
         };
     }
 }

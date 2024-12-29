@@ -37,27 +37,17 @@ public partial class ConfigureReferenceObjectDialog : DialogWindow, INotifyPrope
             Assumes.NotNull(value);
             _sessionSettings = value;
             OnPropertyChanged(nameof(SessionSettings));
-            OnPropertyChanged(nameof(PinToMergeHead));
+            OnPropertyChanged(nameof(IncludeUnstagedChanges));
         }
     }
 
-    public bool PinToMergeHead
+    public bool IncludeUnstagedChanges
     {
-        get => _sessionSettings.PinToMergeHead;
+        get => _sessionSettings.IncludeUnstagedChanges;
         set
         {
-            _sessionSettings = _sessionSettings.WithPinToMergeHead(value);
-            OnPropertyChanged(nameof(PinToMergeHead));
-        }
-    }
-
-    public Visibility MergeHeadCheckBoxVisibility
-    {
-        get => _mergeHeadCheckBoxVisibility;
-        set
-        {
-            _mergeHeadCheckBoxVisibility = value;
-            OnPropertyChanged(nameof(MergeHeadCheckBoxVisibility));
+            _sessionSettings = _sessionSettings.WithIncludeUnstagedChanges(value);
+            OnPropertyChanged(nameof(IncludeUnstagedChanges));
         }
     }
 
@@ -83,12 +73,6 @@ public partial class ConfigureReferenceObjectDialog : DialogWindow, INotifyPrope
                 IsOkEnabled = SelectedReference != null;
                 UpdateTabSelection();
             }
-        };
-
-        Tabs.SelectionChanged += (sender, args) => MergeHeadCheckBoxVisibility = Tabs.SelectedItem switch
-        {
-            var item when item == BranchesTab || item == TagsTab => Visibility.Visible,
-            _ => Visibility.Hidden
         };
     }
 

@@ -13,5 +13,11 @@ public interface IComparisonConfig
 
     bool OriginRefsOnly { get; }
 
-    bool PinToMergeHead { get; }
+    /// <summary>
+    /// Whether to scan the entire working tree for changes that were not staged.
+    /// For larger projects this can take significantly more time (Lib2GitSharp is slow there).
+    /// 
+    /// What is a better strategy is to stage the files we're modifying.
+    /// </summary>
+    bool IncludeUnstagedChanges { get; }
 }

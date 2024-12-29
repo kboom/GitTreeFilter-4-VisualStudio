@@ -15,10 +15,9 @@
 
     <Grid>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="20,0,0,12">
-            <CheckBox x:Name="MergeHeadCheckBox"
-                      Content="Only my changes"
-                      Visibility="{Binding MergeHeadCheckBoxVisibility, Mode=OneWay}"
-                      IsChecked="{Binding PinToMergeHead, Mode=TwoWay}"
+            <CheckBox x:Name="IncludeUnstagedChangesCheckbox"
+                      Content="Include unstaged changes"
+                      IsChecked="{Binding IncludeUnstagedChanges, Mode=TwoWay}"
                       VerticalAlignment="Center" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,20,10">

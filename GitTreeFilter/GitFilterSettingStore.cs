@@ -142,12 +142,12 @@ internal class UserSettingsStoreOptions
         get
         {
             return Core.Models.SessionSettings.Default
-                .WithPinToMergeHead(_settingsStore.GetBoolean(_vault, GitTreeFilterSetting.PinToMergeHead, false));
+                .WithIncludeUnstagedChanges(_settingsStore.GetBoolean(_vault, GitTreeFilterSetting.PinToMergeHead, false));
         }
         set
         {
             Assumes.NotNull(value);
-            _settingsStore.SetBoolean(_vault, GitTreeFilterSetting.PinToMergeHead, value.PinToMergeHead);
+            _settingsStore.SetBoolean(_vault, GitTreeFilterSetting.PinToMergeHead, value.IncludeUnstagedChanges);
         }
     }
 

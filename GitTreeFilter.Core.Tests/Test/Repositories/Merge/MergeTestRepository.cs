@@ -49,7 +49,7 @@ public sealed class MergeTestRepository : ITestRepository
     });
 
     public IReadOnlyList<GitTag> Tags => Array.AsReadOnly(new GitTag[] {
-        new GitTag(new GitCommitObject(COMMIT_58C98C, "Add classes on main"), "fork"),
+        new GitTag(new GitCommitObject(COMMIT_58C98C, "Add classes on main"), "fork"), // This tag points to a commit which no longer belongs to any known branch
         new(ITestRepositoryExt.CommitBySha(this, COMMIT_6214D8).Reference, "merge")
     });
 

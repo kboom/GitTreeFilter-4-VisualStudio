@@ -26,10 +26,10 @@ namespace GitTreeFilter.Core.Tests
             set { _comparisonConfig.OriginRefsOnly = value; }
         }
 
-        public bool PinToMergeHead
+        public bool IncludeUnstagedChanges
         {
-            get { return _comparisonConfig.PinToMergeHead; }
-            set { _comparisonConfig.PinToMergeHead = value; }
+            get { return _comparisonConfig.IncludeUnstagedChanges; }
+            set { _comparisonConfig.IncludeUnstagedChanges = value; }
         }
 
         internal void SetComparisonConfig(TestComparisonConfig comparisonConfig)

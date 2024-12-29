@@ -108,7 +108,7 @@ namespace GitTreeFilter.Core
                 // this works, but is quite slow
                 var repositoryStatus = repository.RetrieveStatus(new StatusOptions()
                 {
-                    Show = StatusShowOption.IndexAndWorkDir,
+                    Show = ComparisonConfig.IncludeUnstagedChanges ? StatusShowOption.IndexAndWorkDir : StatusShowOption.IndexOnly,
                     IncludeIgnored = false,
                     ExcludeSubmodules = true,
                     RecurseUntrackedDirs = false,
