@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+env:
+  SOLUTION_FILE_PATH: .
+
+jobs:
+  version:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.merge_commit_sha }}
+        fetch-depth: '0'
+
+    - name: Fetch ${{ github.event.pull_request.base.ref }}
+      run: |
+        git branch ${{ github.event.pull_request.base.ref }} origin/${{ github.event.pull_request.base.ref }}
+        git branch
+        git branch -r
+
+    - name: Generate nightly version
+      id: nightly-version
+      uses: anothrNick/github-tag-action@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        WITH_V: true
+        PRERELEASE_SUFFIX: nightly
+        PRERELEASE: true
+        TAG_CONTEXT: repo
+        VERBOSE: true
+
+    - name: Determine version
+      id: version
+      run: |
+        echo "version=${{ steps.nightly-version.outputs.new_tag }}" >> $GITHUB_OUTPUT
+
+  build:
+    uses: ./.github/workflows/_build.yml
+    needs: 
+      - version
+    permissions:
+      checks: write
+    with:
+      version: ${{ needs.version.outputs.version }}

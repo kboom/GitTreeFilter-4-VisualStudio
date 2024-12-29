@@ -77,7 +77,8 @@ jobs:
         fail-on-error: true
 
     - name: Upload GitTreeFilter.vsix
+      if: inputs.version != ''
       uses: actions/upload-artifact@v4
       with:
-        name: GitTreeFilter.vsix
+        name: GitTreeFilter-${{ inputs.version }}.vsix
         path: '.\GitTreeFilter\bin\Release\GitTreeFilter.vsix'

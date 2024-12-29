@@ -5,23 +5,16 @@ on:
     types:
       - closed
     branches:
-      - main
       - release/*
 env:
   SOLUTION_FILE_PATH: .
 
 jobs:
-  build:
-    uses: ./.github/workflows/_build.yml
-    permissions:
-      checks: write
-  autotag:
-    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.base.ref, 'release/')
-    needs:
-      - build
+  version:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-22.04
-    permissions:
-      contents: write
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -41,7 +34,9 @@ jobs:
         export InitialVersion="${MajorVersion}.0.0"
         echo "InitialVersion=$InitialVersion" >> $GITHUB_ENV
 
-    - name: Bump version and push tag
+    - name: Generate release version
+      id: release-version
+      if: startsWith(github.event.pull_request.base.ref, 'release/')
       uses: anothrNick/github-tag-action@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -51,3 +46,18 @@ jobs:
         INITIAL_VERSION: ${{ env.InitialVersion }}
         RELEASE_BRANCHES: release/*
         VERBOSE: true
+
+    - name: Determine version
+      id: version
+      run: |
+        echo "version=${{ steps.release-version.outputs.new_tag }}" >> $GITHUB_OUTPUT
+
+  build:
+    uses: ./.github/workflows/_build.yml
+    needs: 
+      - version
+    permissions:
+      checks: write
+    with:
+      version: ${{ needs.version.outputs.version }}
+  
