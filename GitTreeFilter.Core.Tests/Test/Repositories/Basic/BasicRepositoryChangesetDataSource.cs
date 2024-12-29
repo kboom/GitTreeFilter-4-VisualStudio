@@ -53,7 +53,7 @@ namespace GitTreeFilter.Core.Tests.Test.Repositories.Basic
             {
                 ComparisonConfig = new TestComparisonConfig()
                 {
-                    TestName = "Commit missing in HEAD with PinToMergeHead OFF",
+                    TestName = "HEAD with IncludeUnstagedChanges OFF",
                     ReferenceObject = Repository.CommitByMessage("Added Class4.cs"),
                     IncludeUnstagedChanges = false
                 },
@@ -66,7 +66,7 @@ namespace GitTreeFilter.Core.Tests.Test.Repositories.Basic
             {
                 ComparisonConfig = new TestComparisonConfig()
                 {
-                    TestName = "Commit missing in HEAD with PinToMergeHead ON",
+                    TestName = "HEAD with IncludeUnstagedChanges ON",
                     ReferenceObject = Repository.CommitByMessage("Added Class4.cs"),
                     IncludeUnstagedChanges = true
                 },

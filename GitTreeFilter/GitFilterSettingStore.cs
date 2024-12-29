@@ -84,7 +84,7 @@ internal class GitFilterSettingStore : IGitFilterSettingStore
     {
         get
         {
-            UserSettingsStoreOptions options = new UserSettingsStoreOptions(_userSettingsStore, SettingStoreVault);
+            UserSettingsStoreOptions options = new(_userSettingsStore, SettingStoreVault);
 
             if (!options.ValidateAndLogValues())
             {
@@ -103,7 +103,7 @@ internal class GitFilterSettingStore : IGitFilterSettingStore
             _userSettingsStore.CreateCollection(SettingStoreVault);
         }
 
-        UserSettingsStoreOptions options = new UserSettingsStoreOptions(_userSettingsStore, SettingStoreVault);
+        UserSettingsStoreOptions options = new(_userSettingsStore, SettingStoreVault);
 
         if (e?.SessionSettings != null)
         {
@@ -142,12 +142,12 @@ internal class UserSettingsStoreOptions
         get
         {
             return Core.Models.SessionSettings.Default
-                .WithIncludeUnstagedChanges(_settingsStore.GetBoolean(_vault, GitTreeFilterSetting.PinToMergeHead, false));
+                .WithIncludeUnstagedChanges(_settingsStore.GetBoolean(_vault, GitTreeFilterSetting.IncludeUnstagedChanges, false));
         }
         set
         {
             Assumes.NotNull(value);
-            _settingsStore.SetBoolean(_vault, GitTreeFilterSetting.PinToMergeHead, value.IncludeUnstagedChanges);
+            _settingsStore.SetBoolean(_vault, GitTreeFilterSetting.IncludeUnstagedChanges, value.IncludeUnstagedChanges);
         }
     }
 
@@ -205,7 +205,7 @@ internal class UserSettingsStoreOptions
     }
     private sealed class GitTreeFilterSetting : StringEnum<GitTreeFilterSetting>
     {
-        public static readonly GitTreeFilterSetting PinToMergeHead = Create(nameof(PinToMergeHead));
+        public static readonly GitTreeFilterSetting IncludeUnstagedChanges = Create(nameof(IncludeUnstagedChanges));
         public static readonly GitTreeFilterSetting TargetGitReferenceSha = Create(nameof(TargetGitReferenceSha));
         public static readonly GitTreeFilterSetting TargetGitReferenceName = Create(nameof(TargetGitReferenceName));
         public static readonly GitTreeFilterSetting TargetGitReferenceType = Create(nameof(TargetGitReferenceType));
