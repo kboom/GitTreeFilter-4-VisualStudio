@@ -1,8 +1,6 @@
 name: CI
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
     types:
       - closed
@@ -19,6 +17,8 @@ jobs:
       checks: write
   autotag:
     if: github.event.pull_request.merged == true
+    needs:
+      - build
     runs-on: ubuntu-22.04
     permissions:
       contents: write
@@ -27,6 +27,7 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.merge_commit_sha }}
         fetch-depth: '0'
+        fetch: '--no-tags +refs/heads/main:refs/remotes/origin/main +refs/heads/${{ github.event.pull_request.head.ref }}:refs/remotes/origin/${{ github.event.pull_request.head.ref }}'
 
     - name: Bump version and push tag
       uses: anothrNick/github-tag-action@v1
