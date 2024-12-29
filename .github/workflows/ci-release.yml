@@ -13,6 +13,8 @@ jobs:
   version:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
