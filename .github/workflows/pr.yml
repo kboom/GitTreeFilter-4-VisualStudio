@@ -9,4 +9,4 @@ jobs:
     permissions:
       checks: write
     with:
-      commit: ${{ github.event.pull_request.base.ref }}
+      commit: ${{ github.event.pull_request.merge_commit_sha }}
