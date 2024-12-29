@@ -1,222 +1,296 @@
-﻿using System;
-using System.Diagnostics;
-using System.Globalization;
-using System.Threading;
-using System.Threading.Tasks;
-using BranchDiffer.VS.Shared;
-using EnvDTE;
+﻿using EnvDTE;
 using GitTreeFilter.Commands;
 using GitTreeFilter.Core;
 using GitTreeFilter.Core.Models;
+using GitTreeFilter.Models;
 using GitTreeFilter.Tagging;
 using Microsoft;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.TeamFoundation.Git.Extensibility;
+using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace GitTreeFilter
+namespace GitTreeFilter;
+
+public interface IGitFilterService
 {
-    public interface IGitFilterService
+    PluginLifecycleState PluginState { get; }
+    GitReference<GitCommitObject> ReferenceObject { get; set; }
+    IGlobalSettings GlobalSettings { get; set; }
+    ISessionSettings SessionSettings { get; set; }
+    GitSolution Solution { get; set; }
+    ISolutionRepository SolutionRepository { get; }
+    IItemTagManager ItemTagManager { get; set; }
+    GitTreeFilterErrorPresenter ErrorPresenter { get; }
+    bool IsFilterApplied { get; set; }
+
+    event NotifyGitFilterChangedEventHandler GitFilterChanged;
+
+    event NotifyGitFilterLifecycleEventHandler GitFilterLifecycleEvent;
+}
+
+/// <summary>
+/// Tag interface
+/// </summary>
+public interface SGitFilterService
+{
+}
+
+class GitFilterService : SGitFilterService, IGitFilterService
+{
+    #region IGitFilterService
+
+    public GitReference<GitCommitObject> ReferenceObject
     {
-        PluginLifecycleState PluginState { get; }
-        GitReference<GitCommitObject> TargetReference { get; set; }
-        IGitFiltersConfiguration Options { get; set; }
-        GitSolution Solution { get; set; }
-        ISolutionRepository SolutionRepository { get; }
-        IItemTagManager ItemTagManager { get; set; }
-        MessagePresenter ErrorPresenter { get; }
-        bool IsFilterApplied { get; set; }
-
-        event NotifyGitFilterChangedEventHandler GitFilterChanged;
-
-        event NotifyGitFilterLifecycleEventHandler GitFilterLifecycleEvent;
-    }
-
-    public interface SGitFilterService
-    {
-    }
-
-    public class NotifyGitFilterChangedEventArgs : EventArgs
-    {
-        public NotifyGitFilterChangedEventArgs(GitReference<GitCommitObject> targetReference) => TargetReference = targetReference;
-
-        public GitReference<GitCommitObject> TargetReference { get; }
-    }
-
-    public enum PluginLifecycleState
-    {
-        RUNNING,
-        LOADING
-    }
-
-    public class NotifyGitFilterLifecycleEventArgs : EventArgs
-    {
-    }
-
-    public delegate void NotifyGitFilterChangedEventHandler(object sender, NotifyGitFilterChangedEventArgs args);
-    public delegate void NotifyGitFilterLifecycleEventHandler(object sender, NotifyGitFilterLifecycleEventArgs args);
-
-    public class GitFilterService : SGitFilterService, IGitFilterService
-    {
-        private readonly IGitFiltersPackage _package;
-        private ISolutionRepository _solutionRepository;
-        private DTE _dte;
-        private GitReference<GitCommitObject> _targetReference;
-
-        public GitFilterService(GitFiltersPackage gitFiltersPackage)
+        get => _referenceObject;
+        set
         {
-            Assumes.NotNull(gitFiltersPackage);
-            _package = gitFiltersPackage;
-        }
-
-        public GitReference<GitCommitObject> TargetReference
-        {
-            get => _targetReference;
-            set
+            Assumes.NotNull(value);
+            if (_solutionRepository.TryHydrate(value, out var newReference) && !Equals(_referenceObject, newReference))
             {
-                if(!Equals(_targetReference, value))
-                {
-                    _ = _solutionRepository.TryHydrate(value, out _targetReference);
-                    _solutionRepository.GitReference = _targetReference;
-                    GitFilterChanged?.Invoke(this, new NotifyGitFilterChangedEventArgs(_targetReference));
-                }
+                _referenceObject = newReference;
+                GitFilterChanged?.Invoke(this, new NotifyGitFilterChangedEventArgs(_referenceObject, default));
             }
         }
+    }
 
-        public PluginLifecycleState PluginState { get; private set; } = PluginLifecycleState.LOADING;
-
-        public IGitFiltersConfiguration Options { get; set; }
-        public GitSolution Solution { get; set; }
-        public IItemTagManager ItemTagManager { get; set; }
-
-        private bool _isFilterApplied = false;
-        public bool IsFilterApplied
+    public ISessionSettings SessionSettings
+    {
+        get => _sessionSettings;
+        set
         {
-            get => _isFilterApplied;
-            set
+            Assumes.NotNull(value);
+            if (!Equals(_sessionSettings, value))
             {
-                _isFilterApplied = value;
-                GitFilterLifecycleEvent?.Raise(this, new NotifyGitFilterLifecycleEventArgs());
+                _sessionSettings = value;
+                GitFilterChanged?.Invoke(this, new NotifyGitFilterChangedEventArgs(default, _sessionSettings));
             }
         }
+    }
 
-        public MessagePresenter ErrorPresenter { get; } = new MessagePresenter();
-
-        public ISolutionRepository SolutionRepository => _solutionRepository;
-
-        public event NotifyGitFilterChangedEventHandler GitFilterChanged;
-        public event NotifyGitFilterLifecycleEventHandler GitFilterLifecycleEvent;
-
-        internal async Task InitializeAsync(CancellationToken cancellationToken)
+    public bool IsFilterApplied
+    {
+        get => _isFilterApplied;
+        set
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            _dte = await _package.GetServiceAsync<DTE>();
-
-            if (_dte != null)
-            {
-                _dte.Events.SolutionEvents.Opened += SetUp;
-                _dte.Events.SolutionEvents.BeforeClosing += () => {
-                    PluginState = PluginLifecycleState.LOADING;
-                    Solution = new GitSolution(string.Empty);
-                    // also unregister commands
-                };
-
-                var solutionLoaded = await IsSolutionLoadedAsync();
-                if (solutionLoaded)
-                {
-                    await SetUpAsync();
-                } 
-            }
-            else
-            {
-                await FailWithMessageBoxAsync();
-            }
+            _isFilterApplied = value;
+            GitFilterLifecycleEvent?.Raise(this, new NotifyGitFilterLifecycleEventArgs());
         }
-        private async Task<bool> IsSolutionLoadedAsync()
+    }
+
+    public PluginLifecycleState PluginState { get; private set; } = PluginLifecycleState.LOADING;
+
+    public IGlobalSettings GlobalSettings { get; set; }
+
+    public GitSolution Solution { get; set; }
+
+    public IItemTagManager ItemTagManager { get; set; }
+
+    public GitTreeFilterErrorPresenter ErrorPresenter { get; } = new GitTreeFilterErrorPresenter();
+
+    public ISolutionRepository SolutionRepository => _solutionRepository;
+
+    public event NotifyGitFilterChangedEventHandler GitFilterChanged;
+    public event NotifyGitFilterLifecycleEventHandler GitFilterLifecycleEvent;
+
+    #endregion
+
+    #region Constructors
+
+    internal GitFilterService(GitFiltersPackage gitFiltersPackage)
+    {
+        Assumes.NotNull(gitFiltersPackage);
+        _package = gitFiltersPackage;
+
+        GitFilterChanged += InvalidateResources;
+    }
+
+    #endregion
+
+    #region Initializers
+    public async Task InitializeAsync(CancellationToken cancellationToken)
+    {
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        _gitExt = ServiceProvider.GlobalProvider.GetService(typeof(IGitExt)) as IGitExt;
+        _dte = await _package.GetServiceAsync<DTE>();
+
+        if (_gitExt is null || _dte is null)
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            var solService = await _package.GetServiceAsync<SVsSolution, IVsSolution>();
-
-            ErrorHandler.ThrowOnFailure(solService.GetProperty((int)__VSPROPID.VSPROPID_IsSolutionOpen, out var value));
-
-            return value is bool isSolOpen && isSolOpen;
+            await FailWithMessageBoxAsync();
         }
 
-        private void SetUp()
+        await SetUpAsync();
+
+        _gitExt.PropertyChanged += OnRepositoryChanged;
+        _dte.Events.SolutionEvents.Opened += SetUp;
+        _dte.Events.SolutionEvents.BeforeClosing += () =>
         {
-            // Don't block
-            SetUpAsync();
+            PluginState = PluginLifecycleState.LOADING;
+            Solution = new GitSolution(string.Empty);
+        };
+    }
+
+    #endregion
+
+    #region PrivateMembers
+
+    private void SetUp() => ThreadHelper.JoinableTaskFactory.RunAsync(async () => await SetUpAsync()).FileAndForget("GitTreeFilter/GitTreeFilterService/SetUpAsync");
+
+    private async Task SetUpAsync()
+    {
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Setting up solution information for GitFilterService"));
+
+        if (!TryGetRootRepositoryPath(out string repositoryRootPath))
+        {
+            PluginState = PluginLifecycleState.INACTIVE;
+            Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Could not identify GIT repository to use, deactivating the plugin for now"));
+            return;
         }
 
-        private async Task SetUpAsync()
+        var gitSolution = new GitSolution(repositoryRootPath);
+
+        Solution = gitSolution;
+        GlobalSettings = _package.Configuration;
+        ItemTagManager = new ItemTagManager();
+
+        ComparisonConfig comparisonConfig = new(
+            () => GlobalSettings,
+            () => SessionSettings,
+            () => ReferenceObject
+        );
+
+        _solutionRepository = SolutionRepositoryFactory.CreateSolutionRepository(Solution, comparisonConfig);
+
+        LoadTargetGitReference();
+        LoadSessionSettings();
+        ItemTagManager.CreateTagTables();
+
+        if (PluginState == PluginLifecycleState.LOADING)
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Setting up solution information for GitFilterService"));
-            var absoluteSolutionPath = _dte.Solution.FullName;
-            var solutionDirectory = System.IO.Path.GetDirectoryName(absoluteSolutionPath);
-            var gitSolution = new GitSolution(solutionDirectory);
-
-            Solution = gitSolution;
-            Options = _package.Configuration;
-            ItemTagManager = new ItemTagManager();
-
-            _solutionRepository = SolutionRepositoryFactory.CreateSolutionRepository(Solution, Options.ToComparisonConfig());
-
-            ReadDefaults();
-
             await CommandRegistrar.InitializeAsync(_package);
-
-            PluginState = PluginLifecycleState.RUNNING;
         }
 
-        private void ReadDefaults()
-        {
-            LoadTargetGitReference();
-            ItemTagManager.CreateTagTables();
-        }
+        PluginState = PluginLifecycleState.RUNNING;
+    }
 
-        private void LoadTargetGitReference()
+    private void OnRepositoryChanged(object sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(_gitExt.ActiveRepositories))
         {
-            if (TargetReference == null)
+            SetUp();
+        }
+    }
+
+    private bool TryGetRootRepositoryPath(out string repositoryPath)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        if (_gitExt.ActiveRepositories.Count > 0)
+        {
+            if (_gitExt.ActiveRepositories.Count > 1)
             {
-                var storedGitReference = _package.SettingsStore.GitReference;
-                if (storedGitReference != null)
+                string solutionPath = _dte.Solution.FullName;
+                if (!string.IsNullOrEmpty(solutionPath))
                 {
-                    if(_solutionRepository.TryHydrate(storedGitReference, out var reference))
+                    IGitRepositoryInfo matchingRepository = _gitExt.ActiveRepositories.FirstOrDefault(x =>
                     {
-                        TargetReference = reference;
+                        var repoUri = new Uri(x.RepositoryPath, UriKind.Absolute);
+                        var solutionUri = new Uri(solutionPath, UriKind.Absolute);
+
+                        return Uri.Compare(repoUri, solutionUri, UriComponents.Path, UriFormat.Unescaped, StringComparison.OrdinalIgnoreCase) == 0;
+                    });
+
+                    if (matchingRepository != null)
+                    {
+                        repositoryPath = Path.GetFullPath(matchingRepository.RepositoryPath);
+                        return true;
                     }
                 }
-                if (TargetReference == null && _solutionRepository.TryGetGitBranchByName(
-                    Options.DefaultBranch,
-                    out var branch))
-                {
-                    TargetReference = branch;
-                }
-            }
-            _solutionRepository.GitReference = TargetReference;
-        }
 
-        private async Task FailWithMessageBoxAsync()
+                Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "There are multiple repositories loaded, choosing the first one."));
+            }
+
+            IGitRepositoryInfo gitRepositoryInfo = _gitExt.ActiveRepositories.FirstOrDefault();
+            repositoryPath = gitRepositoryInfo.RepositoryPath;
+            return true;
+        }
+        else
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            var uiShell = await _package.GetServiceAsync<IVsUIShell>();
-            Assumes.Present(uiShell);
-            var clsid = Guid.Empty;
-            _ = uiShell.ShowMessageBox(
-                0,
-                ref clsid,
-                "FirstPackage",
-                "Unable to load GitTreeFilter plugin. Failed to get Visual Studio services",
-                string.Empty,
-                0,
-                OLEMSGBUTTON.OLEMSGBUTTON_OK,
-                OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST,
-                OLEMSGICON.OLEMSGICON_INFO,
-                0,
-                out _);
+            repositoryPath = null;
+            return false;
         }
     }
+
+    private void LoadTargetGitReference()
+    {
+        if (ReferenceObject == null)
+        {
+            var storedGitReference = _package.SettingsStore.ReferenceObject;
+            if (storedGitReference != null)
+            {
+                if (_solutionRepository.TryHydrate(storedGitReference, out var reference))
+                {
+                    _referenceObject = reference;
+                }
+            }
+            if (ReferenceObject == null && _solutionRepository.TryGetGitBranchByName(
+                GlobalSettings.DefaultBranch,
+                out var branch))
+            {
+                _referenceObject = branch;
+            }
+        }
+    }
+
+    private void LoadSessionSettings()
+    {
+        if (SessionSettings == null)
+        {
+            _sessionSettings = _package.SettingsStore.SessionSettings;
+        }
+    }
+
+    private void InvalidateResources(object sender, NotifyGitFilterChangedEventArgs args)
+    {
+        ItemTagManager?.Reset();
+    }
+
+    private async Task FailWithMessageBoxAsync()
+    {
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        var uiShell = await _package.GetServiceAsync<IVsUIShell>();
+        Assumes.Present(uiShell);
+        var clsid = Guid.Empty;
+        _ = uiShell.ShowMessageBox(
+            0,
+            ref clsid,
+            "FirstPackage",
+            "Unable to load GitTreeFilter plugin. Failed to get Visual Studio services",
+            string.Empty,
+            0,
+            OLEMSGBUTTON.OLEMSGBUTTON_OK,
+            OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST,
+            OLEMSGICON.OLEMSGICON_INFO,
+            0,
+            out _);
+    }
+
+    private readonly IGitFiltersPackage _package;
+    private ISolutionRepository _solutionRepository;
+    private DTE _dte;
+    private IGitExt _gitExt;
+    private GitReference<GitCommitObject> _referenceObject;
+    private ISessionSettings _sessionSettings;
+    private bool _isFilterApplied = false;
+
+    #endregion
 }

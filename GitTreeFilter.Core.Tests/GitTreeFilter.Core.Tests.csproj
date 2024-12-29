@@ -3,13 +3,13 @@
 	<PropertyGroup>
 		<TargetFrameworks>net472</TargetFrameworks>
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
-		<AnalysisLevel>5.0</AnalysisLevel>
+		<LangVersion>11</LangVersion>
+		<AnalysisLevel>11</AnalysisLevel>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<OutputType>Library</OutputType>
 		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
 		<GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
 		<IsPackable>false</IsPackable>
-		<LangVersion>11.0</LangVersion>
 	</PropertyGroup>
 
 	<ItemGroup>

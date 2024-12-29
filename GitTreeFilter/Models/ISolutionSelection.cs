@@ -1,21 +1,20 @@
 ﻿using EnvDTE;
 
-namespace GitTreeFilter.Models
+namespace GitTreeFilter.Models;
+
+public interface ISolutionSelection
 {
-    public interface ISolutionSelection
-    {
-        string FullPath { get; }
+    string FullPath { get; }
 
-        string OldFullPath { get; }
+    string OldFullPath { get; }
 
-        /// <summary>
-        /// One of EnvDTE.Constants.vsProjectItemKind....
-        /// </summary>
-        string Kind { get; }
+    /// <summary>
+    /// One of EnvDTE.Constants.vsProjectItemKind....
+    /// </summary>
+    string Kind { get; }
 
-        /// <summary>
-        /// Document related to the selection item. Will be null for EnvDTE.Project
-        /// </summary>
-        Document Document { get; }
-    }
+    /// <summary>
+    /// Document related to the selection item. Will be null for EnvDTE.Project
+    /// </summary>
+    Document Document { get; }
 }

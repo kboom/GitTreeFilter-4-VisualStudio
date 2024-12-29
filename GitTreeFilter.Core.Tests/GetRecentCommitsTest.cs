@@ -1,8 +1,7 @@
-﻿using System.Linq;
-using FluentAssertions;
-using GitTreeFilter.Core.Tests.DataSource;
-using GitTreeFilter.Core.Tests.Repositories;
+﻿using FluentAssertions;
+using GitTreeFilter.Core.Tests.Test.Repositories;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Linq;
 
 namespace GitTreeFilter.Core.Tests
 {
@@ -48,7 +47,7 @@ namespace GitTreeFilter.Core.Tests
 
             // then
             recentCommits.Should()
-                .Equal(TestRepositories.First.Commits);
+                .Equal(testRepository.HeadCommits);
         }
 
         [DataTestMethod]
@@ -65,7 +64,7 @@ namespace GitTreeFilter.Core.Tests
             recentCommits
                 .Select(x => x.ShortMessage)
                 .Should()
-                .Equal(TestRepositories.First.Commits.Select(x => x.ShortMessage));
+                .Equal(testRepository.HeadCommits.Select(x => x.ShortMessage));
         }
 
         [DataTestMethod]
@@ -74,7 +73,7 @@ namespace GitTreeFilter.Core.Tests
         public void NumberOfCommitsRequestedMatch(int expectedCommitCount)
         {
             // given
-            var solutionRepository = CreateSolutionRepository(TestRepositories.First);
+            var solutionRepository = CreateSolutionRepository(TestRepositories.Basic);
 
             // when
             var recentCommits = solutionRepository.GetRecentCommits(expectedCommitCount);
@@ -87,14 +86,14 @@ namespace GitTreeFilter.Core.Tests
         public void ReturnsNoMoreThanMaximumCommitsAvailable()
         {
             // given
-            var solutionRepository = CreateSolutionRepository(TestRepositories.First);
+            var solutionRepository = CreateSolutionRepository(TestRepositories.Basic);
             const int moreCommitsThanExist = 1000;
 
             // when
             var recentCommits = solutionRepository.GetRecentCommits(moreCommitsThanExist);
 
             // then
-            recentCommits.Should().HaveCount(TestRepositories.First.Commits.Count);
+            recentCommits.Should().HaveCount(TestRepositories.Basic.HeadCommits.Count);
         }
     }
 }

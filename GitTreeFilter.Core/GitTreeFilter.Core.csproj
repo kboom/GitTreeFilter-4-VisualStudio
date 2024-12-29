@@ -1,14 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-	 	<TargetFrameworks>net472</TargetFrameworks>
-	  <EnableNETAnalyzers>true</EnableNETAnalyzers>
-	  <AnalysisLevel>5.0</AnalysisLevel>
-	  <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-	  <OutputType>Library</OutputType>
-	  <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-	  <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>net472</TargetFrameworks>
+		<LangVersion>11</LangVersion>
+		<AnalysisLevel>11</AnalysisLevel>
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<OutputType>Library</OutputType>
+		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+		<GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+	</PropertyGroup>
 
 
 	<ItemGroup>

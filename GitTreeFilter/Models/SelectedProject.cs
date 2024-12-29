@@ -1,31 +1,34 @@
 ﻿using EnvDTE;
 
-namespace GitTreeFilter.Models
+namespace GitTreeFilter.Models;
+
+class SelectedProject : ISolutionSelection
 {
-    public class SelectedProject : ISolutionSelection
+    #region ISolutionSelection
+
+    public string FullPath
     {
-        public Project Native { get; set; }
-
-        public string FullPath
+        get
         {
-            get
-            {
-                Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
-                return this.Native.FullName;
-            }
+            Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
+            return Native.FullName;
         }
-
-        public string OldFullPath { get; set; }
-
-        public string Kind
-        {
-            get
-            {
-                Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
-                return this.Native.Kind;
-            }
-        }
-
-        public Document Document => null;
     }
+
+    public string OldFullPath { get; set; }
+
+    public string Kind
+    {
+        get
+        {
+            Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
+            return Native.Kind;
+        }
+    }
+
+    public Document Document => null;
+
+    #endregion
+
+    internal Project Native { get; set; }
 }

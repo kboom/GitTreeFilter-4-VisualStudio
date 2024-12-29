@@ -16,6 +16,8 @@
     <RootNamespace>GitTreeFilter</RootNamespace>
     <AssemblyName>GitTreeFilter</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <LangVersion>11</LangVersion>
+    <AnalysisLevel>11</AnalysisLevel>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <UseCodebase>true</UseCodebase>
     <TargetVsixContainerName>GitTreeFilter.vsix</TargetVsixContainerName>
@@ -46,36 +48,45 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <RuntimeIdentifiers>win</RuntimeIdentifiers>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Commands\AbstractGitFiltersCommand.cs" />
     <Compile Include="Commands\CommandRegistrar.cs" />
-    <Compile Include="Commands\ConfigureReferenceObjectCommand.cs" />
-    <Compile Include="Commands\ConfigureReferenceObjectDialog.xaml.cs">
+    <Compile Include="Commands\Dialogs\ReferenceObject\ConfigureReferenceObjectCommand.cs" />
+    <Compile Include="Commands\Dialogs\ReferenceObject\ConfigureReferenceObjectDialog.xaml.cs">
       <DependentUpon>ConfigureReferenceObjectDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Commands\GitFiltersControls.cs" />
     <Compile Include="Commands\GitTreeFilterCommand.cs" />
-    <Compile Include="Commands\OpenDiffCommandManager.cs" />
-    <Compile Include="Commands\OpenPhysicalFileDiffCommand.cs" />
-    <Compile Include="Commands\OpenProjectFileDiffCommand.cs" />
-    <Compile Include="ErrorPresenter.cs" />
+    <Compile Include="Commands\Diffrence\OpenDiffCommandManager.cs" />
+    <Compile Include="Commands\Diffrence\OpenPhysicalFileDiffCommand.cs" />
+    <Compile Include="Commands\Diffrence\OpenProjectFileDiffCommand.cs" />
+    <Compile Include="GitTreeFilterProvider.GitFileFilter.cs" />
+    <Compile Include="Models\ComparisonConfig.cs" />
+    <Compile Include="GitTreeFilterErrorPresenter.cs" />
     <Compile Include="GitFilterSettingStore.cs" />
     <Compile Include="GitTreeFilterService.cs" />
     <Compile Include="GitTreeFilterProvider.cs" />
-    <Compile Include="GitTreeFilterConfiguration.cs" />
+    <Compile Include="GitTreeFilterConfiguration.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="GitTreeFilterPackageGuids.cs" />
     <Compile Include="Models\ISolutionSelection.cs" />
     <Compile Include="Models\SelectedProject.cs" />
     <Compile Include="Models\SelectedProjectItem.cs" />
     <Compile Include="Models\SolutionSelectionContainer.cs" />
     <Compile Include="Models\SolutionSelectionExtensions.cs" />
+    <Compile Include="Events\NotifyGitFilterChangedEventArgs.cs" />
+    <Compile Include="Events\NotifyGitFilterLifecycleEventArgs.cs" />
+    <Compile Include="Models\PluginLifecycleState.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="GitTreeFilterPackage.cs" />
     <Compile Include="Tagging\EditedCsProjectTable.cs" />
     <Compile Include="Tagging\IItemTable.cs" />
     <Compile Include="Tagging\RenamedPathTable.cs" />
     <Compile Include="Tagging\ItemTagManager.cs" />
-    <Compile Include="VsFileDiffProvider.cs" />
+    <Compile Include="Actions\FileDiffActions.cs" />
     <Compile Include="VSPackage.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -130,6 +141,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Libraries\Microsoft.VisualStudio.Diagnostics.Assert.dll</HintPath>
     </Reference>
+    <PackageReference Include="Microsoft.VisualStudio.TeamFoundation.Git.Extensibility">
+      <Version>17.0.32322.3</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.4.2119">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -172,7 +186,7 @@
     <Resource Include="Resources\list.bmp" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Commands\ConfigureReferenceObjectDialog.xaml">
+    <Page Include="Commands\Dialogs\ReferenceObject\ConfigureReferenceObjectDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

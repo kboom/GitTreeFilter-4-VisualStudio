@@ -1,9 +1,10 @@
-﻿using System.Linq;
-using FluentAssertions;
+﻿using FluentAssertions;
 using FluentAssertions.Execution;
-using GitTreeFilter.Core.Tests.DataSource;
-using GitTreeFilter.Core.Tests.Repositories;
+using GitTreeFilter.Core.Models;
+using GitTreeFilter.Core.Tests.Test.Repositories;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Linq;
 
 namespace GitTreeFilter.Core.Tests
 {
@@ -50,17 +51,16 @@ namespace GitTreeFilter.Core.Tests
             // then
             using (new AssertionScope())
             {
-                tags.Select(b => b.FriendlyName)
-                    .Should()
-                    .Equal(testRepository.Tags.Select(x => x.FriendlyName));
-
-                tags.Select(b => b.Reference.Sha)
-                    .Should()
-                    .Equal(testRepository.Tags.Select(x => x.Reference.Sha));
-
-                tags.Select(b => b.Reference.ShortMessage)
-                    .Should()
-                    .Equal(testRepository.Tags.Select(x => x.Reference.ShortMessage));
+                tags.Should().HaveCount(testRepository.Tags.Count);
+                tags.Should().SatisfyRespectively(testRepository.Tags.Select((expectedTag, index) => new Action<GitTag>(tag =>
+                {
+                    using (new AssertionScope($"Evaluating expected tag '{expectedTag.FriendlyName}' at index {index}"))
+                    {
+                        tag.FriendlyName.Should().Be(expectedTag.FriendlyName);
+                        tag.Reference.Sha.Should().Be(expectedTag.Reference.Sha);
+                        tag.Reference.ShortMessage.Should().Be(expectedTag.Reference.ShortMessage);
+                    }
+                })));
             }
         }
 
@@ -70,7 +70,7 @@ namespace GitTreeFilter.Core.Tests
         public void NumberOfTagsRequestedMatch(int expectedTagCount)
         {
             // given
-            var solutionRepository = CreateSolutionRepository(TestRepositories.First);
+            var solutionRepository = CreateSolutionRepository(TestRepositories.Basic);
 
             // when
             var recentTags = solutionRepository.GetRecentTags(expectedTagCount);
@@ -83,14 +83,14 @@ namespace GitTreeFilter.Core.Tests
         public void ReturnsNoMoreThanMaximumTagsAvailable()
         {
             // given
-            var solutionRepository = CreateSolutionRepository(TestRepositories.First);
+            var solutionRepository = CreateSolutionRepository(TestRepositories.Basic);
             const int moreTagsThanExist = 1000;
 
             // when
             var recentTags = solutionRepository.GetRecentTags(moreTagsThanExist);
 
             // then
-            recentTags.Should().HaveCount(TestRepositories.First.Tags.Count);
+            recentTags.Should().HaveCount(TestRepositories.Basic.Tags.Count);
         }
     }
 }

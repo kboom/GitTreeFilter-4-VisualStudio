@@ -1,7 +1,6 @@
-﻿using System;
+﻿using LibGit2Sharp;
+using System;
 using System.Collections.Generic;
-using System.Xml.Linq;
-using LibGit2Sharp;
 
 namespace GitTreeFilter.Core.Models
 {
@@ -27,26 +26,29 @@ namespace GitTreeFilter.Core.Models
             return false;
         }
         public sealed override int GetHashCode() => 1138026772 + EqualityComparer<string>.Default.GetHashCode(_sha);
+
+        public override string ToString() => $"{nameof(GitObject)}[{Sha}]";
     }
 
     public sealed class GitCommitObject : GitObject
     {
-        private readonly string _shortMessage;
-
         public GitCommitObject(string sha) : base(sha)
         {
-            IsResolved = false;
+            _isResolved = false;
         }
 
         public GitCommitObject(string sha, string shortMessage) : base(sha)
         {
             _shortMessage = shortMessage;
-            IsResolved = true;
+            _isResolved = true;
         }
 
-        public bool IsResolved { get; private set; }
+        public bool IsResolved => _isResolved;
 
         public string ShortMessage => _shortMessage;
+
+        private readonly string _shortMessage;
+        private readonly bool _isResolved;
     }
 
     public abstract class GitReference<T> where T : GitObject
@@ -55,27 +57,52 @@ namespace GitTreeFilter.Core.Models
 
         public GitReference(T gitObject)
         {
-            _gitObject = gitObject;
+            _gitObject = gitObject ?? throw new ArgumentNullException(nameof(gitObject));
         }
 
         public T Reference => _gitObject;
 
         public abstract string FriendlyName { get; }
 
-        public override bool Equals(object obj) => obj is GitReference<T> reference && EqualityComparer<T>.Default.Equals(_gitObject, reference._gitObject);
-        public override int GetHashCode() => -848059651 + EqualityComparer<T>.Default.GetHashCode(_gitObject);
+        public abstract GitReference<GitCommitObject> Clone();
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+
+            bool typesEqual = GetType().Equals(obj.GetType());
+            bool shaEquality = obj is GitReference<T> otherGitReference && EqualityComparer<T>.Default.Equals(_gitObject, otherGitReference._gitObject);
+
+            return typesEqual && shaEquality;
+        }
+
+        public override int GetHashCode() => _gitObject.GetHashCode();
+
+        public override string ToString() => $"{GetType().Name}[{Reference}]";
     }
 
-    internal static class GitReferenceExtensions
+    public static class GitReferenceExtensions
     {
         public static ObjectId ToObjectId<T>(this GitReference<T> reference) where T : GitObject
         {
             return new ObjectId(reference.Reference.Sha);
         }
+
+        public static GitCommit Tip(this GitBranch branch)
+        {
+            return new GitCommit(branch.Reference);
+        }
     }
 
     public class GitCommit : GitReference<GitCommitObject>
     {
+        public GitCommit(GitCommit source) : base(source.Reference)
+        {
+        }
+
         public GitCommit(GitCommitObject target) : base(target) {
         }
 
@@ -84,23 +111,47 @@ namespace GitTreeFilter.Core.Models
         public string ShortMessage => Reference.ShortMessage;
 
         public string ShortSha => Reference.Sha.Substring(0, 7);
+
+        public override GitReference<GitCommitObject> Clone()
+        {
+            return new GitCommit(this);
+        }
     }
 
     public class GitBranch : GitReference<GitCommitObject>
     {
-        private readonly string _shortName;
-
-        public GitBranch(GitCommitObject target, string shortName) : base(target)
+        public GitBranch(GitBranch source) : this(source.Reference, source._branchName)
         {
-            _shortName = shortName;
+
         }
 
-        public override string FriendlyName => _shortName;
+        public GitBranch(GitCommitObject target, string branchName) : base(target)
+        {
+            if (target is null)
+            {
+                throw new ArgumentNullException(nameof(target));
+            }
+
+            if (string.IsNullOrEmpty(branchName))
+            {
+                throw new ArgumentException("Cannot be null or empty string", nameof(branchName));
+            }
+
+            _branchName = branchName;
+        }
+
+        public override string FriendlyName => _branchName;
+
+        public override GitReference<GitCommitObject> Clone() => new GitBranch(this);
+
+        private readonly string _branchName;
     }
 
     public class GitTag : GitReference<GitCommitObject>
     {
-        private readonly string _name;
+        public GitTag(GitTag source) : this(source.Reference, source._name)
+        {
+        }
 
         public GitTag(GitCommitObject target, string name) : base(target)
         {
@@ -111,5 +162,8 @@ namespace GitTreeFilter.Core.Models
 
         public string ShortSha => Reference.Sha.Substring(0, 7);
 
+        public override GitReference<GitCommitObject> Clone() => new GitTag(this);
+
+        private readonly string _name;
     }
 }

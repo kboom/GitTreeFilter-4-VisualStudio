@@ -1,12 +1,14 @@
-﻿using System.Collections.Immutable;
-using System.Linq;
-using FluentAssertions;
+﻿using FluentAssertions;
 using FluentAssertions.Execution;
 using GitTreeFilter.Core.Exceptions;
 using GitTreeFilter.Core.Models;
-using GitTreeFilter.Core.Tests.DataSource;
-using GitTreeFilter.Core.Tests.Repositories;
+using GitTreeFilter.Core.Tests.Test;
+using GitTreeFilter.Core.Tests.Test.Repositories;
+using GitTreeFilter.Core.Tests.Test.Repositories.Basic;
+using GitTreeFilter.Core.Tests.Test.Repositories.Merge;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Immutable;
+using System.Linq;
 
 namespace GitTreeFilter.Core.Tests
 {
@@ -18,8 +20,8 @@ namespace GitTreeFilter.Core.Tests
         public void ThrowsNothingToCompareExceptionIfReferenceNotSet()
         {
             // given
-            var solutionRepository = CreateSolutionRepository(TestRepositories.First);
-            solutionRepository.GitReference = null;
+            var solutionRepository = CreateSolutionRepository(TestRepositories.Basic);
+            ReferenceObject = null;
 
             // when & then
             solutionRepository.Invoking(x => x.Changeset)
@@ -32,9 +34,9 @@ namespace GitTreeFilter.Core.Tests
         public void ThrowsRepositoryTargetNotFoundExceptionIfReferenceSetToMissingObject()
         {
             // given
-            var solutionRepository = CreateSolutionRepository(TestRepositories.First);
+            var solutionRepository = CreateSolutionRepository(TestRepositories.Basic);
             const string missingSha = "9eabf5b536662000f79978c4d1b6e4eff5c8d785";
-            solutionRepository.GitReference = new GitCommit(new GitCommitObject(missingSha, "any description"));
+            ReferenceObject = new GitCommit(new GitCommitObject(missingSha, "any description"));
 
             // when & then
             solutionRepository.Invoking(x => x.Changeset)
@@ -49,26 +51,51 @@ namespace GitTreeFilter.Core.Tests
         {
             // given
             var solutionRepository = CreateSolutionRepository(testRepository);
-            solutionRepository.GitReference = testRepository.Head;
+            ReferenceObject = testRepository.Head;
 
             // when
             var changeset = solutionRepository.Changeset;
 
             // then
-            using(new AssertionScope())
+            using (new AssertionScope())
             {
                 changeset.Should().NotBeNull();
                 changeset.Should().BeEmpty();
-            } 
+            }
         }
 
         [DataTestMethod]
-        [FirstRepositoryChangesetDataSource]
-        public void FirstRepositoryChangeset(ITestRepository testRepository, GitReference<GitCommitObject> gitReference, IImmutableSet<string> changedFilesPaths)
+        [BasicRepositoryChangesetDataSource]
+        public void BasicRepositoryChangeset(
+            ITestRepository testRepository,
+            TestComparisonConfig comparisonConfig,
+            IImmutableSet<string> changedFilesPaths)
         {
             // given
             var solutionRepository = CreateSolutionRepository(testRepository);
-            solutionRepository.GitReference = gitReference;
+            SetComparisonConfig(comparisonConfig);
+
+            // when
+            var changeset = solutionRepository.Changeset;
+
+            // then
+            using (new AssertionScope())
+            {
+                changeset.Should().NotBeNull();
+                changeset.Select(x => x.AbsoluteFilePath).Should().BeEquivalentTo(changedFilesPaths);
+            }
+        }
+
+        [DataTestMethod]
+        [MergeRepositoryChangesetDataSource]
+        public void MergeRepositoryChangeset(
+           ITestRepository testRepository,
+           TestComparisonConfig comparisonConfig,
+           IImmutableSet<string> changedFilesPaths)
+        {
+            // given
+            var solutionRepository = CreateSolutionRepository(testRepository);
+            SetComparisonConfig(comparisonConfig);
 
             // when
             var changeset = solutionRepository.Changeset;

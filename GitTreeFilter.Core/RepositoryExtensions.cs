@@ -1,7 +1,7 @@
-﻿using System;
-using System.Linq;
-using GitTreeFilter.Core.Models;
+﻿using GitTreeFilter.Core.Models;
 using LibGit2Sharp;
+using System;
+using System.Linq;
 
 namespace GitTreeFilter.Core
 {
@@ -10,7 +10,11 @@ namespace GitTreeFilter.Core
         public static Commit GetTargetCommit(this IRepository repository, GitReference<GitCommitObject> target) =>
             repository.Lookup<Commit>(new ObjectId(target.Reference.Sha));
 
-        public static bool TryHydrate(this IRepository repository, GitReference<GitCommitObject> target, out GitReference<GitCommitObject> hydratedReference, IComparisonConfig comparisonConfig)
+        public static bool TryHydrate(
+            this IRepository repository,
+            GitReference<GitCommitObject> target,
+            out GitReference<GitCommitObject> hydratedReference,
+            IComparisonConfig comparisonConfig)
         {
             hydratedReference = null;
             switch (target)
@@ -77,7 +81,8 @@ namespace GitTreeFilter.Core
             try
             {
                 var branch = !string.IsNullOrEmpty(gitBranch.FriendlyName) ? repository.Branches[gitBranch.FriendlyName] : null;
-                return new GitBranch(branch.Tip.ToGitCommitObject(), branch.FriendlyName);
+                Commit commitToUse = branch.Tip;
+                return new GitBranch(commitToUse.ToGitCommitObject(), branch.FriendlyName);
             } catch
             {
                 // Branch removed, fall back to commit

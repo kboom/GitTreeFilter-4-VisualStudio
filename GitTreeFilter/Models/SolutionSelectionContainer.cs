@@ -1,32 +1,22 @@
-﻿namespace GitTreeFilter.Models
+﻿namespace GitTreeFilter.Models;
+
+class SolutionSelectionContainer<T> where T : ISolutionSelection
 {
-    public class SolutionSelectionContainer<T>
-        where T : ISolutionSelection
+    public string FullName
     {
-        public string FullName
+        get
         {
-            get
-            {
-                return this.Item.FullPath;
-            }
+            return Item.FullPath;
         }
-
-        public string OldFullName
-        {
-            get
-            {
-                return this.Item.OldFullPath; 
-            }
-        }
-
-        public string VsItemKind
-        {
-            get
-            {
-                return this.Item.Kind;
-            }
-        }
-
-        public T Item { get; set; }
     }
+
+    public string OldFullName
+    {
+        get
+        {
+            return Item.OldFullPath; 
+        }
+    }
+
+    public T Item { get; set; }
 }

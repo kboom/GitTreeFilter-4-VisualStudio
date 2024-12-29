@@ -1,9 +1,10 @@
-﻿using System.Linq;
-using FluentAssertions;
+﻿using FluentAssertions;
 using FluentAssertions.Execution;
-using GitTreeFilter.Core.Tests.DataSource;
-using GitTreeFilter.Core.Tests.Repositories;
+using GitTreeFilter.Core.Models;
+using GitTreeFilter.Core.Tests.Test.Repositories;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Linq;
 
 namespace GitTreeFilter.Core.Tests
 {
@@ -50,17 +51,16 @@ namespace GitTreeFilter.Core.Tests
             // then
             using (new AssertionScope())
             {
-                branches.Select(b => b.FriendlyName)
-                    .Should()
-                    .Equal(testRepository.Branches.Select(x => x.FriendlyName));
-
-                branches.Select(b => b.Reference.Sha)
-                    .Should()
-                    .Equal(testRepository.Branches.Select(x => x.Reference.Sha));
-
-                branches.Select(b => b.Reference.ShortMessage)
-                    .Should()
-                    .Equal(testRepository.Branches.Select(x => x.Reference.ShortMessage));
+                branches.Should().HaveCount(testRepository.Branches.Count);
+                branches.Should().SatisfyRespectively(testRepository.Branches.Select((expectedBranch, index) => new Action<GitBranch>(branch =>
+                {
+                    using (new AssertionScope($"Evaluating expected branch '{expectedBranch.FriendlyName}' at index {index}"))
+                    {
+                        branch.FriendlyName.Should().Be(expectedBranch.FriendlyName);
+                        branch.Reference.Sha.Should().Be(expectedBranch.Reference.Sha, because: $"Branch {expectedBranch.FriendlyName} should have given SHA");
+                        branch.Reference.ShortMessage.Should().Be(expectedBranch.Reference.ShortMessage, because: $"Branch {expectedBranch.FriendlyName} should have given short message");
+                    }
+                })));
             }
         }
     }

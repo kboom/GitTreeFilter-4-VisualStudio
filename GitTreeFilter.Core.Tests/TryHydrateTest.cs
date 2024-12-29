@@ -1,11 +1,10 @@
-﻿using System.Linq;
-using FluentAssertions;
+﻿using FluentAssertions;
 using FluentAssertions.Execution;
 using GitTreeFilter.Core.Models;
-using GitTreeFilter.Core.Tests.DataSource;
 using GitTreeFilter.Core.Tests.Extensions;
-using GitTreeFilter.Core.Tests.Repositories;
+using GitTreeFilter.Core.Tests.Test.Repositories;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Linq;
 
 namespace GitTreeFilter.Core.Tests
 {
@@ -19,7 +18,7 @@ namespace GitTreeFilter.Core.Tests
         {
             // given
             var solutionRepository = CreateSolutionRepository(testRepository);
-            var expectedCommit = testRepository.Commits.RandomElement();
+            var expectedCommit = testRepository.AllCommits.RandomElement();
             var rawCommit = new GitCommitObject(expectedCommit.Reference.Sha);
             var rawGitCommit = new GitCommit(rawCommit);
 
@@ -27,7 +26,7 @@ namespace GitTreeFilter.Core.Tests
             var hydrated = solutionRepository.TryHydrate(rawGitCommit, out var rehydratedReference);
 
             // then
-            using(new AssertionScope())
+            using (new AssertionScope())
             {
                 hydrated.Should().BeTrue();
 
@@ -37,7 +36,7 @@ namespace GitTreeFilter.Core.Tests
                     .BeAssignableTo<GitCommit>()
                     .And
                     .Be(expectedCommit);
-            }  
+            }
         }
 
         [DataTestMethod]
@@ -100,7 +99,7 @@ namespace GitTreeFilter.Core.Tests
         {
             // given
             var solutionRepository = CreateSolutionRepository(testRepository);
-            var expectedCommit = testRepository.Commits.RandomElement();
+            var expectedCommit = testRepository.AllCommits.RandomElement();
             var rawCommit = new GitCommitObject(expectedCommit.Reference.Sha);
             const string missingBranchName = "branch-that-does-not-exist";
             var rawGitBranch = new GitBranch(rawCommit, missingBranchName);
@@ -128,7 +127,7 @@ namespace GitTreeFilter.Core.Tests
         {
             // given
             var solutionRepository = CreateSolutionRepository(testRepository);
-            var expectedCommit = testRepository.Commits.RandomElement();
+            var expectedCommit = testRepository.AllCommits.RandomElement();
             var rawCommit = new GitCommitObject(expectedCommit.Reference.Sha);
             const string missingTagName = "branch-that-does-not-exist";
             var rawGitTag = new GitTag(rawCommit, missingTagName);

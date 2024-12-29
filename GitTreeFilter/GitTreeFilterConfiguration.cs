@@ -1,41 +1,29 @@
-﻿using System.ComponentModel;
-using GitTreeFilter.Core;
-using Microsoft.VisualStudio.Shell;
+﻿using Microsoft.VisualStudio.Shell;
+using System.ComponentModel;
 
-namespace BranchDiffer.VS.Shared
+namespace GitTreeFilter;
+
+/// <summary>
+/// Global configuration for the Git Tree Filter plugin.
+/// Managed from within the Visual Studio settings pages.
+/// </summary>
+public interface IGlobalSettings {
+    string DefaultBranch { get; }
+
+    bool OriginRefsOnly { get; }
+}
+
+public class GlobalSettings : DialogPage, IGlobalSettings
 {
-    public interface IGitFiltersConfiguration {
-        string DefaultBranch { get; }
+    private const string c_category = "Git Tree Filter";
 
-        bool OriginRefsOnly { get; }
-    }
+    [Category(c_category)]
+    [DisplayName("Default branch to compare to")]
+    [Description("The default branch for which a tree to compare to will be taken.")]
+    public string DefaultBranch { get; set; } = "origin/master";
 
-    public static class GitFiltersConfigurationExt
-    {
-        public static IComparisonConfig ToComparisonConfig(this IGitFiltersConfiguration globalConfig) => new ConfigurationComparisonConfig(globalConfig);
-    }
-
-    class ConfigurationComparisonConfig : IComparisonConfig
-    {
-        private readonly IGitFiltersConfiguration _config;
-
-        public ConfigurationComparisonConfig(IGitFiltersConfiguration globalConfig) => _config = globalConfig;
-
-        public bool OriginRefsOnly => _config.OriginRefsOnly;
-    }
-
-    public class GitFiltersConfiguration : DialogPage, IGitFiltersConfiguration
-    {
-        private const string c_category = "Git Tree Filter";
-
-        [Category(c_category)]
-        [DisplayName("Default branch to compare to")]
-        [Description("The default branch for which a tree to compare to will be taken")]
-        public string DefaultBranch { get; set; } = "master";
-
-        [Category(c_category)]
-        [DisplayName("Display only origin references")]
-        [Description("In case your branch pulled changes from origin but you are comparing to local master you will see unrelated changes. This prevents you from comparing to local branches.")]
-        public bool OriginRefsOnly { get; set; } = false;
-    }
+    [Category(c_category)]
+    [DisplayName("Display only origin references")]
+    [Description("If your branch has pulled changes from the origin that are not present in the local branch you're comparing to, unrelated changes will appear. This makes it difficult to compare with local branches. Setting this option to 'true' (default) is recommended.")]
+    public bool OriginRefsOnly { get; set; } = true;
 }

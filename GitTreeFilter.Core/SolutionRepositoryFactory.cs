@@ -1,16 +1,15 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace GitTreeFilter.Core
+namespace GitTreeFilter.Core;
+
+public class SolutionRepositoryFactory
 {
-    public class SolutionRepositoryFactory
+    public static ISolutionRepository CreateSolutionRepository(GitSolution solution, IComparisonConfig comparisonConfig)
     {
-        public static ISolutionRepository CreateSolutionRepository(GitSolution solution, IComparisonConfig comparisonConfig)
-        {
-            return new SolutionRepository(
-                solution,
-                comparisonConfig,
-        ServiceContext.Instance.GetRequiredService<GitRepositoryFactory>()
-            );
-        }
+        return new SolutionRepository(
+            solution,
+            comparisonConfig,
+            ServiceContext.Instance.GetRequiredService<GitRepositoryFactory>()
+        );
     }
 }
