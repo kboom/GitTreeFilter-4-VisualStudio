@@ -78,9 +78,15 @@ jobs:
         reporter: dotnet-trx
         fail-on-error: true
 
+    - name: Rename VSIX file
+      if: inputs.version != ''
+      shell: pwsh
+      run: |
+        Copy-Item -Path .\GitTreeFilter\bin\Release\GitTreeFilter.vsix -Destination GitTreeFilter-${{ inputs.version }}.vsix
+
     - name: Upload GitTreeFilter.vsix
       if: inputs.version != ''
       uses: actions/upload-artifact@v4
       with:
         name: GitTreeFilter-${{ inputs.version }}.vsix
-        path: '.\GitTreeFilter\bin\Release\GitTreeFilter.vsix'
+        path: GitTreeFilter-${{ inputs.version }}.vsix
