@@ -6,12 +6,11 @@ on:
 
 env:
   VSIX_FILE_NAME: GitTreeFilter-${{ github.event.release.tag_name }}.vsix
-  SOURCES_FILE_NAME: Sources.tar.gz
 
 jobs:
   publish:
     if: github.event.release.draft == false && github.event.release.prerelease == false
-    runs-on: ubuntu-latest
+    runs-on: windows-2022
 
     steps:
       - uses: actions/checkout@v4
@@ -27,15 +26,16 @@ jobs:
           releaseId: ${{ github.event.release.id }}
           fileName: ${{ env.VSIX_FILE_NAME }}
           token:  ${{ secrets.GITHUB_TOKEN }}
-          tarBall: true
+          zipBall: true
           extract: true
 
       - name: Get sources root path
         id: get-sources-root
+        shell: pwsh
         run: |
-          TAG_NAME=${{ github.event.release.tag_name }}
-          TAG_NAME=${TAG_NAME#v}
-          echo "sources_root=GitTreeFilter-4-VisualStudio-${TAG_NAME}" >> $GITHUB_OUTPUT
+          $tagName = "${{ github.event.release.tag_name }}"
+          $tagName = $tagName -replace "^v"
+          "sources_root=GitTreeFilter-4-VisualStudio-$tagName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
       - name: Publish extension to Marketplace
         uses: cezarypiatek/VsixPublisherAction@0.2
