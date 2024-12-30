@@ -101,6 +101,10 @@ jobs:
         github-token: ${{ github.token }}
         repository: ${{ github.repository }}
 
+    - name: List all files in the workspace
+      run: |
+        ls -laR  ${{ github.workspace }}
+
     - name: Upload VSIX as release asset
       uses: actions/upload-release-asset@v1
       env:
