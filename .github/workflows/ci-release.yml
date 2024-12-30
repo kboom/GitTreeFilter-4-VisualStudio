@@ -46,7 +46,7 @@ jobs:
         TAG_CONTEXT: branch
         DEFAULT_BRANCH: ${{ github.event.pull_request.base.ref }}
         INITIAL_VERSION: ${{ env.InitialVersion }}
-        RELEASE_BRANCHES: release/*
+        RELEASE_BRANCHES: ${{ github.event.pull_request.base.ref }}
         VERBOSE: true
 
     - name: Determine version
@@ -69,6 +69,8 @@ jobs:
       - version
       - build
     runs-on: windows-2022
+    permissions:
+      contents: write
     defaults:
       run:
         working-directory: ${{ github.workspace }}
