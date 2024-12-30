@@ -52,4 +52,5 @@ jobs:
     permissions:
       checks: write
     with:
+      commit: ${{ github.event.pull_request.merge_commit_sha }}
       version: ${{ needs.version.outputs.version }}

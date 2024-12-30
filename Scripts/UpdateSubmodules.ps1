@@ -15,22 +15,20 @@ git submodule foreach --recursive git clean -fdx
 
 $TestResourcesDir = Join-Path $PSScriptRoot "../TestResources"
 
+Write-Host "Checking out feature branches in specific repositories"
+
 # Reset and update specific repositories
 Push-Location (Join-Path $TestResourcesDir "TestRepository")
 git rebase --abort
-git fetch origin feature:feature --force
-git branch -D feature
-git checkout feature --force
-git reset --hard origin/feature
+git fetch origin feature --force
+git checkout -B feature origin/feature
 git clean -fdx
 Pop-Location
 
 Push-Location (Join-Path $TestResourcesDir "TestRepository2")
 git rebase --abort
-git fetch origin feature:feature --force
-git branch -D feature
-git checkout feature --force
-git reset --hard origin/feature
+git fetch origin feature --force
+git checkout -B feature origin/feature
 git clean -fdx
 Pop-Location
 
