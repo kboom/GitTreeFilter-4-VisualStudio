@@ -6,7 +6,7 @@ on:
 
 env:
   SOURCES_DIR_NAME: GitTreeFilter-4-VisualStudio-${{ github.event.release.tag_name }} # remove
-  VSIX_FILE_NAME: GitTreeFilter-${{ github.event.release.tag_name }}-2022.vsix
+  VSIX_FILE_NAME: GitTreeFilter-${{ github.event.release.tag_name }}.vsix
   SOURCES_FILE_NAME: Sources.tar.gz
 
 jobs:
