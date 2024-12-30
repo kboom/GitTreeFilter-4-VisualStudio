@@ -97,7 +97,7 @@ jobs:
     - name: Download VSIX job artifact
       uses: actions/download-artifact@v4
       with:
-        name: GitTreeFilter.vsix
+        name: GitTreeFilter-${{ needs.version.outputs.version }}.vsix
         github-token: ${{ github.token }}
         repository: ${{ github.repository }}
         run-id: ${{ needs.build.outputs.run_id }}
