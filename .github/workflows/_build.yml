@@ -22,8 +22,6 @@ jobs:
     defaults:
       run:
         working-directory: ${{ github.workspace }} 
-    outputs:
-      run_id: ${{ job.status.run_id }}
     steps:
     - uses: actions/checkout@v4
       with:
