@@ -28,22 +28,22 @@ jobs:
           fileName: ${{ env.VSIX_FILE_NAME }}
           token:  ${{ secrets.GITHUB_TOKEN }}
           zipBall: true
-          extract: false # This uses some weird naming pattern for the extracted content
+          extract: true
 
       - name: List all files recursively
         id: extract-release-assets
         shell: pwsh
         run: |
-          Expand-Archive -Path ${{ fromJson(steps.download-release-assets.outputs.downloaded_files)[1] }} -DestinationPath . -PassThru
-          Get-ChildItem -Recurse | ForEach-Object { Write-Host $_.FullName }
-
-          $tagName = "${{ github.event.release.tag_name }}"
-          $tagName = $tagName -replace "^v"
-          "sources_root=GitTreeFilter-4-VisualStudio-$tagName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          $repoName = "${{ github.repository }}" # Full repo name in "owner/repo" format
+          $shortRepoOwner = $repoName.Split('/')[0] # Extract short repository owner name
+          $shortRepoName = $repoName.Split('/')[1] # Extract short repository name
+          $commitHash = "${{ github.sha }}"[0..6] -join "" # Get the first 7 characters of the commit hash
+          $directoryName = "$shortRepoOwner-$shortRepoName-$commitHash"
+          "release_sources_root=$directoryName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
       - name: Publish extension to Marketplace
         uses: cezarypiatek/VsixPublisherAction@0.2
         with:
           extension-file: ${{ env.VSIX_FILE_NAME }}
-          publish-manifest-file: '${{ steps.extract-release-assets.outputs.sources_root }}/GitTreeFilter/vs-publish.json'
+          publish-manifest-file: '${{ steps.extract-release-assets.outputs.release_sources_root }}/GitTreeFilter/vs-publish.json'
           personal-access-code: ${{ secrets.VS_PUBLISHER_ACCESS_TOKEN }}
