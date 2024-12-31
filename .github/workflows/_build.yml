@@ -55,11 +55,24 @@ jobs:
     - name: Restore NuGet packages
       run: nuget restore ${{env.SOLUTION_FILE_PATH}}
 
+    - name: Strip leading "v" from version
+      if: inputs.version != ''
+      id: strip_version
+      shell: pwsh
+      run: |
+        $version = '${{ inputs.version }}'
+        if ($version -match '^v(\d+\.\d+\.\d+)-nightly\.(\d+)$') {
+          $version = "$($matches[1]).$($matches[2])"
+        } elseif ($version.StartsWith('v')) {
+          $version = $version.Substring(1)
+        }
+        echo "::set-output name=vsix_compatible_version::$version"
+
     - name: Set VSIX version
       if: inputs.version != ''
       uses: cezarypiatek/VsixVersionAction@1.0
       with:
-        version: ${{ inputs.version }}
+        version: ${{ steps.strip_version.outputs.vsix_compatible_version }}
         vsix-manifest-file: .\GitTreeFilter\source.extension.vsixmanifest
 
     - name: Build
