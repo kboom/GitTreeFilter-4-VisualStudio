@@ -29,6 +29,11 @@ jobs:
           zipBall: true
           extract: true
 
+      - name: List all files recursively
+        shell: pwsh
+        run: |
+          Get-ChildItem -Recurse | ForEach-Object { Write-Host $_.FullName }
+
       - name: Get sources root path
         id: get-sources-root
         shell: pwsh
