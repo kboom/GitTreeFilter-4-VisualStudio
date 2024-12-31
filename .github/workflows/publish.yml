@@ -35,11 +35,11 @@ jobs:
         run: |
           $tagName = "${{ github.event.release.tag_name }}"
           $tagName = $tagName -replace "^v"
-          "sources_root=GitTreeFilter-4-VisualStudio-$tagName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "sources_root=GitTreeFilter-4-VisualStudio-$tagName/GitTreeFilter-4-VisualStudio-$tagName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
       - name: Publish extension to Marketplace
         uses: cezarypiatek/VsixPublisherAction@0.2
         with:
           extension-file: ${{ env.VSIX_FILE_NAME }}
-          publish-manifest-file: '${{ steps.get-sources-root.outputs.sources_root }}\GitTreeFilter\vs-publish.json'
+          publish-manifest-file: '${{ steps.get-sources-root.outputs.sources_root }}/GitTreeFilter/vs-publish.json'
           personal-access-code: ${{ secrets.VS_PUBLISHER_ACCESS_TOKEN }}
