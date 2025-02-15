@@ -77,7 +77,7 @@ class GitFilterService : SGitFilterService, IGitFilterService
 
     public bool IsFilterApplied
     {
-        get => _isFilterApplied;
+        get => _isFilterApplied; // true
         set
         {
             _isFilterApplied = value;
@@ -119,6 +119,7 @@ class GitFilterService : SGitFilterService, IGitFilterService
     {
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+        GitTreeFilterOutput.Initialize(ServiceProvider.GlobalProvider);
         _gitExt = ServiceProvider.GlobalProvider.GetService(typeof(IGitExt)) as IGitExt;
         _dte = await _package.GetServiceAsync<DTE>();
 
@@ -151,6 +152,7 @@ class GitFilterService : SGitFilterService, IGitFilterService
 
         if (!TryGetRootRepositoryPath(out string repositoryRootPath))
         {
+            GitTreeFilterOutput.WriteLine("Could not identify GIT repository to use, deactivating the plugin for now");
             PluginState = PluginLifecycleState.INACTIVE;
             Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Could not identify GIT repository to use, deactivating the plugin for now"));
             return;
@@ -174,11 +176,10 @@ class GitFilterService : SGitFilterService, IGitFilterService
         LoadSessionSettings();
         ItemTagManager.CreateTagTables();
 
-        if (PluginState == PluginLifecycleState.LOADING)
-        {
-            await CommandRegistrar.InitializeAsync(_package);
-        }
+        GitTreeFilterOutput.WriteLine($"Initializing commands");
+        await CommandRegistrar.InitializeAsync(_package);
 
+        GitTreeFilterOutput.WriteLine($"Initialization done");
         PluginState = PluginLifecycleState.RUNNING;
     }
 
