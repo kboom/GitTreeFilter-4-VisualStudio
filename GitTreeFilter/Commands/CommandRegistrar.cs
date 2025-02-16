@@ -22,9 +22,11 @@ internal class CommandRegistrar
         try
         {
             await RegisterAsync(package, commandService);
+            GitTreeFilterOutput.WriteLine($"Initialized all commands");
         }
         catch (Exception ex)
         {
+            GitTreeFilterOutput.WriteLine($"Failed to register commands: {ex}");
             ActivityLog.LogError(nameof(CommandRegistrar), $"Failed to register commands - {ex}");
             throw ex;
         }
@@ -50,19 +52,38 @@ internal class CommandRegistrar
 
     private static void RegisterCommand(IMenuCommandService commandService, int rawCommandId, GitFiltersCommand command)
     {
+        GitTreeFilterOutput.WriteLine($"Registering command {command.GetType()} with id {rawCommandId}");
+
         var commandId = new CommandID(GitFiltersControls.GitFiltersControlsCmdSet, rawCommandId);
-        var menuCommand = new OleMenuCommand(command.OnExecute, commandId);
-
-        menuCommand.BeforeQueryStatus += delegate (object sender, EventArgs e)
+        if (commandService.FindCommand(commandId) == null)
         {
-            menuCommand.Visible = command.IsVisible;
-        };
+            var menuCommand = new OleMenuCommand(command.OnExecute, commandId);
 
-        command.VisibilityChanged += delegate
+            menuCommand.BeforeQueryStatus += delegate (object sender, EventArgs e)
+            {
+                ThreadHelper.JoinableTaskFactory.Run(() =>
+                {
+                    menuCommand.Visible = command.IsVisible;
+                    return Task.CompletedTask;
+                });
+            };
+
+            command.VisibilityChanged += delegate
+            {
+                ThreadHelper.JoinableTaskFactory.Run(() =>
+                {
+                    menuCommand.Visible = command.IsVisible;
+                    return Task.CompletedTask;
+                });
+            };
+
+            commandService.AddCommand(menuCommand);
+
+            GitTreeFilterOutput.WriteLine($"Command {command.GetType()} with id {rawCommandId} registered");
+        }
+        else
         {
-            menuCommand.Visible = command.IsVisible;
-        };
-
-        commandService.AddCommand(menuCommand);
+            GitTreeFilterOutput.WriteLine($"Command {command.GetType()} with id {rawCommandId} already registered");
+        }
     }
 }
