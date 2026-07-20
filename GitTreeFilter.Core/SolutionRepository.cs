@@ -277,14 +277,14 @@ namespace GitTreeFilter.Core
                 throw new NothingToCompareException();
             }
 
-            var branchesInRepo = repository.Branches.Select(branch => branch.FriendlyName);
-            var activeBranch = repository.Head?.FriendlyName;
-
             if (repository.GetTargetCommit(reference) == null)
             {
                 throw new RepositoryTargetNotFoundException();
             }
-            if (string.IsNullOrEmpty(activeBranch) || !branchesInRepo.Contains(activeBranch))
+            // HEAD is valid as long as it resolves to a real commit. This accepts a
+            // detached HEAD (checked-out commit/tag, mid-rebase/bisect, or a detached
+            // git worktree) while still rejecting a genuinely head-less (unborn) repo.
+            if (repository.Head?.Tip == null)
             {
                 throw new HeadNotFoundException();
             }

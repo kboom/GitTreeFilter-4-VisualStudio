@@ -1,4 +1,4 @@
-﻿using Microsoft;
+using Microsoft;
 using System;
 
 namespace GitTreeFilter.Commands;
@@ -17,8 +17,11 @@ internal abstract class AbstractGitFiltersCommand : GitFiltersCommand
         GitFilterService.GitFilterLifecycleEvent += OnLifecycleEvent;
     }
 
-    private void OnLifecycleEvent(object sender, NotifyGitFilterLifecycleEventArgs args) =>
-            VisibilityChanged?.Raise(this, new NotifyCommandVisibilityChangedEventArgs());
+    private void OnLifecycleEvent(object sender, NotifyGitFilterLifecycleEventArgs args)
+    {
+        GitTreeFilterOutput.Log($"{GetType().Name}: lifecycle event received -> re-querying visibility (IsVisible={IsVisible})");
+        VisibilityChanged?.Raise(this, new NotifyCommandVisibilityChangedEventArgs());
+    }
     
     public abstract void OnExecute(object sender, EventArgs e);
 

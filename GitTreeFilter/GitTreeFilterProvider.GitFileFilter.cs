@@ -1,4 +1,4 @@
-﻿using GitTreeFilter.Core;
+using GitTreeFilter.Core;
 using GitTreeFilter.Core.Exceptions;
 using GitTreeFilter.Core.Models;
 using GitTreeFilter.Tagging;
@@ -35,6 +35,7 @@ public sealed partial class GitFilterProvider
             _gitFiltersService = filterService;
 
             Initialized += OnInitialized;
+            GitTreeFilterOutput.Log("GitFileFilter constructed, subscribed to Initialized");
         }
 
         private ISolutionRepository SolutionRepository => _gitFiltersService.SolutionRepository;
@@ -43,6 +44,7 @@ public sealed partial class GitFilterProvider
 
         private void OnInitialized(object sender, EventArgs e)
         {
+            GitTreeFilterOutput.Log("GitFileFilter.OnInitialized fired -> IsFilterApplied=true (settings button should become visible)");
             _gitFiltersService.GitFilterChanged += OnFilterChangedHandler;
             _gitFiltersService.IsFilterApplied = true;
         }
@@ -60,27 +62,40 @@ public sealed partial class GitFilterProvider
 
         protected override async Task<IReadOnlyObservableSet> GetIncludedItemsAsync(IEnumerable<IVsHierarchyItem> rootItems)
         {
-            if (SolutionRepository is null)
+            GitTreeFilterOutput.Log("GitFileFilter.GetIncludedItemsAsync: entered");
+            try
             {
-                // We are called before initialization.
-                _gitFiltersService.ErrorPresenter.ShowError("You must select a repository first.");
-                return null;
+                if (SolutionRepository is null)
+                {
+                    // We are called before initialization.
+                    GitTreeFilterOutput.Log("GitFileFilter.GetIncludedItemsAsync: SolutionRepository is NULL -> aborting with 'select a repository first'");
+                    _gitFiltersService.ErrorPresenter.ShowError("You must select a repository first.");
+                    return null;
+                }
+
+                var root = HierarchyUtilities.FindCommonAncestor(rootItems);
+                var sourceItems = await _hierarchyCollectionProvider.GetDescendantsAsync(
+                    root.HierarchyIdentity.NestedHierarchy,
+                    CancellationToken
+                );
+                GitTreeFilterOutput.Log($"GitFileFilter.GetIncludedItemsAsync: collected {sourceItems?.Count ?? 0} source items, building filtered set");
+
+                ItemSet = await GitFiltersObservableSet.CreateGitFiltersObservableSetAsync(
+                    SolutionRepository,
+                    _gitFiltersService,
+                    _hierarchyCollectionProvider,
+                    sourceItems,
+                    CancellationToken);
+
+                GitTreeFilterOutput.Log($"GitFileFilter.GetIncludedItemsAsync: returning item set with {ItemSet?.Count ?? 0} included items");
+                return ItemSet;
             }
-
-            var root = HierarchyUtilities.FindCommonAncestor(rootItems);
-            var sourceItems = await _hierarchyCollectionProvider.GetDescendantsAsync(
-                root.HierarchyIdentity.NestedHierarchy,
-                CancellationToken
-            );
-
-            ItemSet = await GitFiltersObservableSet.CreateGitFiltersObservableSetAsync(
-                SolutionRepository,
-                _gitFiltersService,
-                _hierarchyCollectionProvider,
-                sourceItems,
-                CancellationToken);
-
-            return ItemSet;
+            catch (Exception ex)
+            {
+                GitTreeFilterOutput.Log($"GitFileFilter.GetIncludedItemsAsync: UNHANDLED {ex.GetType().Name}: {ex.Message}");
+                GitTreeFilterOutput.Log(ex.StackTrace);
+                throw;
+            }
         }
 
         private static bool TryGetAbsoluteFilePath(IVsHierarchyItem hierarchyItem, out string filepath)
@@ -185,16 +200,19 @@ public sealed partial class GitFilterProvider
             {
                 await TaskScheduler.Default;
 
+                GitTreeFilterOutput.Log("GitFiltersObservableSet.InvalidateAsync: computing changeset");
                 GitChangeset gitChangeset = await CreateChangesetAsync(cancellationToken).ConfigureAwait(false);
 
                 if (gitChangeset is null)
                 {
                     // Displaying no items is better than displaying all as it would suggest filter doesn't work
+                    GitTreeFilterOutput.Log("GitFiltersObservableSet.InvalidateAsync: changeset is NULL -> rendering empty list");
                     IncludedItems = await _hierarchyCollectionProvider.GetFilteredHierarchyItemsAsync(_allItems, (_) => false, cancellationToken);
                     CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
                     return false;
                 }
 
+                GitTreeFilterOutput.Log($"GitFiltersObservableSet.InvalidateAsync: changeset has {gitChangeset.Count} entries, applying predicate");
                 var filter = new ChangesetFilter(gitChangeset, _gitFilterService.ItemTagManager);
 
                 IncludedItems = await _hierarchyCollectionProvider.GetFilteredHierarchyItemsAsync(
@@ -203,6 +221,7 @@ public sealed partial class GitFilterProvider
                     cancellationToken);
 
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                GitTreeFilterOutput.Log($"GitFiltersObservableSet.InvalidateAsync: rendered {IncludedItems.Count} included items");
                 CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
                 return true;
             }
@@ -211,10 +230,13 @@ public sealed partial class GitFilterProvider
             {
                 try
                 {
-                    return _solutionRepository.Changeset;
+                    var changeset = _solutionRepository.Changeset;
+                    GitTreeFilterOutput.Log("GitFiltersObservableSet.CreateChangesetAsync: changeset computed successfully");
+                    return changeset;
                 }
                 catch (NothingToCompareException)
                 {
+                    GitTreeFilterOutput.Log("GitFiltersObservableSet.CreateChangesetAsync: NothingToCompareException (no reference object selected)");
                     await ShowErrorOnMainThreadAsync(
                         "You must first select the reference object to compare your worktree to. Use the green button with the settings icon in the solution toolbar!",
                         "No selected reference");
@@ -222,6 +244,7 @@ public sealed partial class GitFilterProvider
                 }
                 catch (GitRepoNotFoundException)
                 {
+                    GitTreeFilterOutput.Log("GitFiltersObservableSet.CreateChangesetAsync: GitRepoNotFoundException");
                     await ShowErrorOnMainThreadAsync(
                         "You must select a git repository first! You can do this at the bottom right corner of the window.",
                         "Not a git repository");
@@ -229,16 +252,31 @@ public sealed partial class GitFilterProvider
                 }
                 catch (HeadNotFoundException)
                 {
+                    GitTreeFilterOutput.Log("GitFiltersObservableSet.CreateChangesetAsync: HeadNotFoundException");
                     await ShowErrorOnMainThreadAsync(
                         "Unable to locate the HEAD of your current changes. Make sure you are tracking a branch.",
                         "Unable to find a HEAD in the current repository");
                     return null;
                 }
-                catch (GitOperationException)
+                catch (GitOperationException ex)
                 {
+                    GitTreeFilterOutput.Log($"GitFiltersObservableSet.CreateChangesetAsync: GitOperationException ({ex.GetType().Name}): {ex.Message}");
                     await ShowErrorOnMainThreadAsync(
                         "Unknown Git operation error.",
                         "Unable to compare the selected refs");
+                    return null;
+                }
+                catch (Exception ex)
+                {
+                    // Any exception that is not a recognised GitOperationException would
+                    // otherwise bubble out of GetIncludedItemsAsync, abort filter
+                    // initialization (so the settings button never appears) and leave the
+                    // list unchanged. Log it explicitly and degrade to an empty list.
+                    GitTreeFilterOutput.Log($"GitFiltersObservableSet.CreateChangesetAsync: UNEXPECTED {ex.GetType().Name}: {ex.Message}");
+                    GitTreeFilterOutput.Log(ex.StackTrace);
+                    await ShowErrorOnMainThreadAsync(
+                        $"Unexpected error while computing the diff: {ex.Message}",
+                        $"Unexpected error: {ex.GetType().Name}");
                     return null;
                 }
             }
