@@ -195,6 +195,30 @@ class GitFilterService : SGitFilterService, IGitFilterService
     {
         ThreadHelper.ThrowIfNotOnUIThread();
 
+        if (TryGetRepositoryPathFromGitExt(out repositoryPath))
+        {
+            return true;
+        }
+
+        // Visual Studio's IGitExt does not surface every valid repository - notably
+        // git worktrees and submodules (whose ".git" is a file) - which left the
+        // plugin deactivated even though the solution is inside a Git repository.
+        // Fall back to discovering the repository directly from the solution location.
+        if (TryGetSolutionDirectory(out var solutionDirectory)
+            && GitRepositoryDiscovery.TryGetRepositoryRoot(solutionDirectory, out repositoryPath))
+        {
+            Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Discovered Git repository from the solution directory: {0}", repositoryPath));
+            return true;
+        }
+
+        repositoryPath = null;
+        return false;
+    }
+
+    private bool TryGetRepositoryPathFromGitExt(out string repositoryPath)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
         if (_gitExt.ActiveRepositories.Count > 0)
         {
             if (_gitExt.ActiveRepositories.Count > 1)
@@ -224,11 +248,26 @@ class GitFilterService : SGitFilterService, IGitFilterService
             repositoryPath = gitRepositoryInfo.RepositoryPath;
             return true;
         }
-        else
+
+        repositoryPath = null;
+        return false;
+    }
+
+    private bool TryGetSolutionDirectory(out string directory)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        directory = null;
+
+        var solutionFile = _dte?.Solution?.FullName;
+        if (string.IsNullOrEmpty(solutionFile))
         {
-            repositoryPath = null;
             return false;
         }
+
+        // In "Open Folder" mode FullName can already be a directory; otherwise it is a .sln file.
+        directory = Directory.Exists(solutionFile) ? solutionFile : Path.GetDirectoryName(solutionFile);
+        return !string.IsNullOrEmpty(directory);
     }
 
     private void LoadTargetGitReference()
