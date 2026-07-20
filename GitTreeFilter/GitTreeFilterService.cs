@@ -161,33 +161,52 @@ class GitFilterService : SGitFilterService, IGitFilterService
 
         GitTreeFilterOutput.Log($"SetUpAsync: using repository root '{repositoryRootPath}'");
 
-        var gitSolution = new GitSolution(repositoryRootPath);
+        try
+        {
+            var gitSolution = new GitSolution(repositoryRootPath);
 
-        Solution = gitSolution;
-        GlobalSettings = _package.Configuration;
-        ItemTagManager = new ItemTagManager();
+            Solution = gitSolution;
+            GlobalSettings = _package.Configuration;
+            ItemTagManager = new ItemTagManager();
 
-        ComparisonConfig comparisonConfig = new(
-            () => GlobalSettings,
-            () => SessionSettings,
-            () => ReferenceObject
-        );
+            ComparisonConfig comparisonConfig = new(
+                () => GlobalSettings,
+                () => SessionSettings,
+                () => ReferenceObject
+            );
 
-        _solutionRepository = SolutionRepositoryFactory.CreateSolutionRepository(Solution, comparisonConfig);
+            _solutionRepository = SolutionRepositoryFactory.CreateSolutionRepository(Solution, comparisonConfig);
 
-        LoadTargetGitReference();
-        GitTreeFilterOutput.Log(_referenceObject is null
-            ? $"SetUpAsync: no reference object resolved (default branch '{GlobalSettings?.DefaultBranch}' not found and none stored) - filter will report 'select a reference'"
-            : $"SetUpAsync: reference object resolved -> {_referenceObject.FriendlyName} ({_referenceObject.Reference?.Sha})");
-        LoadSessionSettings();
-        ItemTagManager.CreateTagTables();
+            LoadTargetGitReference();
+            GitTreeFilterOutput.Log(_referenceObject is null
+                ? $"SetUpAsync: no reference object resolved (default branch '{GlobalSettings?.DefaultBranch}' not found and none stored) - filter will report 'select a reference'"
+                : $"SetUpAsync: reference object resolved -> {_referenceObject.FriendlyName} ({_referenceObject.Reference?.Sha})");
+            LoadSessionSettings();
+            ItemTagManager.CreateTagTables();
 
-        GitTreeFilterOutput.WriteLine($"Initializing commands");
-        await CommandRegistrar.InitializeAsync(_package);
+            GitTreeFilterOutput.WriteLine($"Initializing commands");
+            await CommandRegistrar.InitializeAsync(_package);
 
-        GitTreeFilterOutput.WriteLine($"Initialization done");
-        PluginState = PluginLifecycleState.RUNNING;
-        GitTreeFilterOutput.Log("SetUpAsync: PluginState=RUNNING");
+            GitTreeFilterOutput.WriteLine($"Initialization done");
+            PluginState = PluginLifecycleState.RUNNING;
+            GitTreeFilterOutput.Log("SetUpAsync: PluginState=RUNNING");
+        }
+        catch (Exception ex)
+        {
+            // A failure here must never abort creation of the service itself: the
+            // service is produced by an async service factory, and an exception that
+            // escapes SetUpAsync leaves SGitFilterService null so the filter provider
+            // cannot create any filter at all ("cannot open"). Degrade gracefully to
+            // INACTIVE instead, and surface the reason to the output pane.
+            PluginState = PluginLifecycleState.INACTIVE;
+            GitTreeFilterOutput.Log($"SetUpAsync: FAILED - {ex.GetType().Name}: {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                GitTreeFilterOutput.Log($"SetUpAsync: inner - {ex.InnerException.GetType().Name}: {ex.InnerException.Message}");
+            }
+            GitTreeFilterOutput.Log($"SetUpAsync: stack - {ex.StackTrace}");
+            GitTreeFilterOutput.WriteLine($"GitTreeFilter could not initialize for '{repositoryRootPath}': {ex.Message}. The plugin is inactive for this repository.");
+        }
     }
 
     private void OnRepositoryChanged(object sender, PropertyChangedEventArgs e)
