@@ -1,4 +1,4 @@
-﻿using EnvDTE;
+using EnvDTE;
 using GitTreeFilter.Commands;
 using GitTreeFilter.Core;
 using GitTreeFilter.Core.Models;
@@ -81,6 +81,7 @@ class GitFilterService : SGitFilterService, IGitFilterService
         set
         {
             _isFilterApplied = value;
+            GitTreeFilterOutput.Log($"IsFilterApplied set to {value} -> raising GitFilterLifecycleEvent (drives command/settings-button visibility)");
             GitFilterLifecycleEvent?.Raise(this, new NotifyGitFilterLifecycleEventArgs());
         }
     }
@@ -148,7 +149,7 @@ class GitFilterService : SGitFilterService, IGitFilterService
     private async Task SetUpAsync()
     {
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-        Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Setting up solution information for GitFilterService"));
+        GitTreeFilterOutput.Log("SetUpAsync: setting up solution information for GitFilterService");
 
         if (!TryGetRootRepositoryPath(out string repositoryRootPath))
         {
@@ -157,6 +158,8 @@ class GitFilterService : SGitFilterService, IGitFilterService
             Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Could not identify GIT repository to use, deactivating the plugin for now"));
             return;
         }
+
+        GitTreeFilterOutput.Log($"SetUpAsync: using repository root '{repositoryRootPath}'");
 
         var gitSolution = new GitSolution(repositoryRootPath);
 
@@ -173,6 +176,9 @@ class GitFilterService : SGitFilterService, IGitFilterService
         _solutionRepository = SolutionRepositoryFactory.CreateSolutionRepository(Solution, comparisonConfig);
 
         LoadTargetGitReference();
+        GitTreeFilterOutput.Log(_referenceObject is null
+            ? $"SetUpAsync: no reference object resolved (default branch '{GlobalSettings?.DefaultBranch}' not found and none stored) - filter will report 'select a reference'"
+            : $"SetUpAsync: reference object resolved -> {_referenceObject.FriendlyName} ({_referenceObject.Reference?.Sha})");
         LoadSessionSettings();
         ItemTagManager.CreateTagTables();
 
@@ -181,6 +187,7 @@ class GitFilterService : SGitFilterService, IGitFilterService
 
         GitTreeFilterOutput.WriteLine($"Initialization done");
         PluginState = PluginLifecycleState.RUNNING;
+        GitTreeFilterOutput.Log("SetUpAsync: PluginState=RUNNING");
     }
 
     private void OnRepositoryChanged(object sender, PropertyChangedEventArgs e)
@@ -197,6 +204,7 @@ class GitFilterService : SGitFilterService, IGitFilterService
 
         if (TryGetRepositoryPathFromGitExt(out repositoryPath))
         {
+            GitTreeFilterOutput.Log($"TryGetRootRepositoryPath: resolved via IGitExt.ActiveRepositories -> '{repositoryPath}'");
             return true;
         }
 
@@ -207,10 +215,12 @@ class GitFilterService : SGitFilterService, IGitFilterService
         if (TryGetSolutionDirectory(out var solutionDirectory)
             && GitRepositoryDiscovery.TryGetRepositoryRoot(solutionDirectory, out repositoryPath))
         {
+            GitTreeFilterOutput.Log($"TryGetRootRepositoryPath: resolved via filesystem discovery from '{solutionDirectory}' -> '{repositoryPath}'");
             Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Discovered Git repository from the solution directory: {0}", repositoryPath));
             return true;
         }
 
+        GitTreeFilterOutput.Log("TryGetRootRepositoryPath: neither IGitExt nor filesystem discovery found a repository");
         repositoryPath = null;
         return false;
     }
