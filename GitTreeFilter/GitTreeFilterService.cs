@@ -1,4 +1,4 @@
-﻿using EnvDTE;
+using EnvDTE;
 using GitTreeFilter.Commands;
 using GitTreeFilter.Core;
 using GitTreeFilter.Core.Models;
@@ -81,6 +81,7 @@ class GitFilterService : SGitFilterService, IGitFilterService
         set
         {
             _isFilterApplied = value;
+            GitTreeFilterOutput.Log($"IsFilterApplied set to {value} -> raising GitFilterLifecycleEvent (drives command/settings-button visibility)");
             GitFilterLifecycleEvent?.Raise(this, new NotifyGitFilterLifecycleEventArgs());
         }
     }
@@ -148,7 +149,7 @@ class GitFilterService : SGitFilterService, IGitFilterService
     private async Task SetUpAsync()
     {
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-        Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Setting up solution information for GitFilterService"));
+        GitTreeFilterOutput.Log("SetUpAsync: setting up solution information for GitFilterService");
 
         if (!TryGetRootRepositoryPath(out string repositoryRootPath))
         {
@@ -158,29 +159,54 @@ class GitFilterService : SGitFilterService, IGitFilterService
             return;
         }
 
-        var gitSolution = new GitSolution(repositoryRootPath);
+        GitTreeFilterOutput.Log($"SetUpAsync: using repository root '{repositoryRootPath}'");
 
-        Solution = gitSolution;
-        GlobalSettings = _package.Configuration;
-        ItemTagManager = new ItemTagManager();
+        try
+        {
+            var gitSolution = new GitSolution(repositoryRootPath);
 
-        ComparisonConfig comparisonConfig = new(
-            () => GlobalSettings,
-            () => SessionSettings,
-            () => ReferenceObject
-        );
+            Solution = gitSolution;
+            GlobalSettings = _package.Configuration;
+            ItemTagManager = new ItemTagManager();
 
-        _solutionRepository = SolutionRepositoryFactory.CreateSolutionRepository(Solution, comparisonConfig);
+            ComparisonConfig comparisonConfig = new(
+                () => GlobalSettings,
+                () => SessionSettings,
+                () => ReferenceObject
+            );
 
-        LoadTargetGitReference();
-        LoadSessionSettings();
-        ItemTagManager.CreateTagTables();
+            _solutionRepository = SolutionRepositoryFactory.CreateSolutionRepository(Solution, comparisonConfig);
 
-        GitTreeFilterOutput.WriteLine($"Initializing commands");
-        await CommandRegistrar.InitializeAsync(_package);
+            LoadTargetGitReference();
+            GitTreeFilterOutput.Log(_referenceObject is null
+                ? $"SetUpAsync: no reference object resolved (default branch '{GlobalSettings?.DefaultBranch}' not found and none stored) - filter will report 'select a reference'"
+                : $"SetUpAsync: reference object resolved -> {_referenceObject.FriendlyName} ({_referenceObject.Reference?.Sha})");
+            LoadSessionSettings();
+            ItemTagManager.CreateTagTables();
 
-        GitTreeFilterOutput.WriteLine($"Initialization done");
-        PluginState = PluginLifecycleState.RUNNING;
+            GitTreeFilterOutput.WriteLine($"Initializing commands");
+            await CommandRegistrar.InitializeAsync(_package);
+
+            GitTreeFilterOutput.WriteLine($"Initialization done");
+            PluginState = PluginLifecycleState.RUNNING;
+            GitTreeFilterOutput.Log("SetUpAsync: PluginState=RUNNING");
+        }
+        catch (Exception ex)
+        {
+            // A failure here must never abort creation of the service itself: the
+            // service is produced by an async service factory, and an exception that
+            // escapes SetUpAsync leaves SGitFilterService null so the filter provider
+            // cannot create any filter at all ("cannot open"). Degrade gracefully to
+            // INACTIVE instead, and surface the reason to the output pane.
+            PluginState = PluginLifecycleState.INACTIVE;
+            GitTreeFilterOutput.Log($"SetUpAsync: FAILED - {ex.GetType().Name}: {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                GitTreeFilterOutput.Log($"SetUpAsync: inner - {ex.InnerException.GetType().Name}: {ex.InnerException.Message}");
+            }
+            GitTreeFilterOutput.Log($"SetUpAsync: stack - {ex.StackTrace}");
+            GitTreeFilterOutput.WriteLine($"GitTreeFilter could not initialize for '{repositoryRootPath}': {ex.Message}. The plugin is inactive for this repository.");
+        }
     }
 
     private void OnRepositoryChanged(object sender, PropertyChangedEventArgs e)
@@ -192,6 +218,33 @@ class GitFilterService : SGitFilterService, IGitFilterService
     }
 
     private bool TryGetRootRepositoryPath(out string repositoryPath)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        if (TryGetRepositoryPathFromGitExt(out repositoryPath))
+        {
+            GitTreeFilterOutput.Log($"TryGetRootRepositoryPath: resolved via IGitExt.ActiveRepositories -> '{repositoryPath}'");
+            return true;
+        }
+
+        // Visual Studio's IGitExt does not surface every valid repository - notably
+        // git worktrees and submodules (whose ".git" is a file) - which left the
+        // plugin deactivated even though the solution is inside a Git repository.
+        // Fall back to discovering the repository directly from the solution location.
+        if (TryGetSolutionDirectory(out var solutionDirectory)
+            && GitRepositoryDiscovery.TryGetRepositoryRoot(solutionDirectory, out repositoryPath))
+        {
+            GitTreeFilterOutput.Log($"TryGetRootRepositoryPath: resolved via filesystem discovery from '{solutionDirectory}' -> '{repositoryPath}'");
+            Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Discovered Git repository from the solution directory: {0}", repositoryPath));
+            return true;
+        }
+
+        GitTreeFilterOutput.Log("TryGetRootRepositoryPath: neither IGitExt nor filesystem discovery found a repository");
+        repositoryPath = null;
+        return false;
+    }
+
+    private bool TryGetRepositoryPathFromGitExt(out string repositoryPath)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -224,11 +277,26 @@ class GitFilterService : SGitFilterService, IGitFilterService
             repositoryPath = gitRepositoryInfo.RepositoryPath;
             return true;
         }
-        else
+
+        repositoryPath = null;
+        return false;
+    }
+
+    private bool TryGetSolutionDirectory(out string directory)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        directory = null;
+
+        var solutionFile = _dte?.Solution?.FullName;
+        if (string.IsNullOrEmpty(solutionFile))
         {
-            repositoryPath = null;
             return false;
         }
+
+        // In "Open Folder" mode FullName can already be a directory; otherwise it is a .sln file.
+        directory = Directory.Exists(solutionFile) ? solutionFile : Path.GetDirectoryName(solutionFile);
+        return !string.IsNullOrEmpty(directory);
     }
 
     private void LoadTargetGitReference()
